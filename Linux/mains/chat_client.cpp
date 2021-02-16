@@ -36,7 +36,7 @@ public:
   void write(const chat_message& msg)
   {
     boost::asio::post(io_context_,
-        boost::bind(&chat_client::do_write, this, msg));
+        boost::bind(&chat_client::do_write, this, msg));//理论上所有bind都能被lambda替代掉？
   }
 
   void close()

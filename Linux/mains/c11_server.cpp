@@ -43,7 +43,7 @@ public:
   void join(chat_participant_ptr participant)
   {
     participants_.insert(participant);
-    for (auto msg: recent_msgs_)
+    for (auto msg: recent_msgs_)//总之是进来一个人，就把所有信息都发出去
       participant->deliver(msg);
   }
 
@@ -55,10 +55,10 @@ public:
   void deliver(const chat_message& msg)
   {
     recent_msgs_.push_back(msg);
-    while (recent_msgs_.size() > max_recent_msgs)
+    while (recent_msgs_.size() > max_recent_msgs)//大于上限的全部都踢掉
       recent_msgs_.pop_front();
 
-    for (auto participant: participants_)
+    for (auto participant: participants_)//每一个participants相当于是一个client？ session继承了participants
       participant->deliver(msg);
   }
 
@@ -179,7 +179,7 @@ public:
 private:
   void do_accept()
   {
-    acceptor_.async_accept(
+    acceptor_.async_accept(//以值的方式捕获this指针，让这个函数具有和当前类一样的访问权限（主要是为了给他room
         [this](boost::system::error_code ec, tcp::socket socket)
         {
           if (!ec)
@@ -188,7 +188,7 @@ private:
           }
 
           do_accept();
-        });
+        });//这是lambda？
   }
 
   tcp::acceptor acceptor_;
@@ -222,6 +222,6 @@ int main(int argc, char* argv[])
   {
     std::cerr << "Exception: " << e.what() << "\n";
   }
-
+  
   return 0;
 }
