@@ -14,12 +14,13 @@ int main(int argc, char const *argv[])
     ip::tcp::socket socket(io);
 
     connect(socket, endpoints);
-    // int *content = (int *)malloc(sizeof(int) * 5000);
-    // for (int i = 0; i < 5000; i++)
-    // {
-    //     content[i] = i;
-    // }
+    int *content = (int *)malloc(sizeof(int) * 5000);
+    for (int i = 0; i < 5000; i++)
+    {
+        content[i] = i;
+    }
 
+    // async_write(socket,buffer(content, 5000 * sizeof(int)))
     // socket.write_some(buffer(content, 5000 * sizeof(int)));
 
     socket.close();

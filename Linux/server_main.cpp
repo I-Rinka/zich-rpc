@@ -11,7 +11,7 @@ void loop(ip::tcp::acceptor *acceptor)
         {
             printf("fuck\n");
         }
-        loop(acceptor);//相当于一直给acceptor注册任务
+        loop(acceptor); //相当于一直给acceptor注册任务
     });
 }
 int main(int argc, char const *argv[])
@@ -21,6 +21,8 @@ int main(int argc, char const *argv[])
     ip::tcp::socket socket(io);
     //lambda一般是函数参数的个数出了问题
     loop(&acceptor);
+    //socket不好注册
     io.run();
+
     return 0;
 }
