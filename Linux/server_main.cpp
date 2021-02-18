@@ -1,28 +1,12 @@
-#include <bits/stdc++.h>
-#include <boost/asio.hpp>
-
-using namespace boost::asio;
-const char *host = "127.0.0.1";
-const char *port = "1233";
-void loop(ip::tcp::acceptor *acceptor)
-{
-    acceptor->async_accept([=](const boost::system::error_code &error, ip::tcp::socket socket) {
-        if (!error)
-        {
-            printf("fuck\n");
-        }
-        loop(acceptor); //相当于一直给acceptor注册任务
-    });
-}
+#include "socket_core.hpp"
 int main(int argc, char const *argv[])
 {
-    io_context io;
-    ip::tcp::acceptor acceptor(io, ip::tcp::endpoint(ip::tcp::v4(), atoi(port)));
-    ip::tcp::socket socket(io);
-    //lambda一般是函数参数的个数出了问题
-    loop(&acceptor);
-    //socket不好注册
-    io.run();
-
+    Socket_Core Server(1233);
+    char line[200];
+    while (std::cin.getline(line, 200))
+    {
+        //写是同步事件
+        Server.write(line);
+    }
     return 0;
 }

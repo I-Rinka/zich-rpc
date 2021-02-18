@@ -1,28 +1,13 @@
-#include <bits/stdc++.h>
-#include <boost/asio.hpp>
-
-using namespace boost::asio;
-const char *host = "127.0.0.1";
-const char *port = "1233";
-
-
+#include "socket_core.hpp"
 int main(int argc, char const *argv[])
 {
-    io_context io;
-    ip::tcp::resolver resolver(io);
-    auto endpoints = resolver.resolve(host, port);
-    ip::tcp::socket socket(io);
-
-    connect(socket, endpoints);
-    int *content = (int *)malloc(sizeof(int) * 5000);
-    for (int i = 0; i < 5000; i++)
+    Socket_Core Client("127.0.0.1", "1233");
+    char line[200];
+    while (std::cin.getline(line, 200))
     {
-        content[i] = i;
+        //写是同步事件
+        // std::cout << line << std::endl;
+        Client.write(line);
     }
-
-    // async_write(socket,buffer(content, 5000 * sizeof(int)))
-    // socket.write_some(buffer(content, 5000 * sizeof(int)));
-
-    socket.close();
     return 0;
 }
