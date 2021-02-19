@@ -6,8 +6,6 @@ class Socket_Core
 {
 private:
     /* data */
-    int max_len = 1000000;
-    int one_socket_len = 2048;
 
     void first_accept()
     {
@@ -177,6 +175,8 @@ private:
     int message_remain_to_read = 0;
 
 public:
+    const int max_len = 1000000;
+    const int one_socket_len = 2048;
     Socket_Core(const char *host, const char *port);
     Socket_Core(int port);
     Socket_Core(const char *port);
