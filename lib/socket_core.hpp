@@ -186,7 +186,7 @@ public:
     {
         this->Recive_Callback=Recive_Callback;
     }
-    void write(char *msg)
+    void Write(char *msg)
     {
         int len = strnlen(msg, max_len);
         this->message_remain_to_write = len;

@@ -7,7 +7,7 @@ int main(int argc, char const *argv[])
     while (std::cin.getline(line, 1000))
     {
         //写是同步事件
-        Client.write(line);
+        Client.Write(line);
     }
     return 0;
 }

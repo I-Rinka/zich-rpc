@@ -101,7 +101,7 @@ https://docs.microsoft.com/zh-cn/cpp/cpp/lambda-expressions-in-cpp?view=msvc-160
 
 #### 方法
 
-+ write(const char *msg)：向远程发送信息
++ Write(const char *msg)：向远程发送信息
 + RegistCallback( std::function<void(const char *)> Recive_Callback)：注册回调函数
 + 发送文件(const char *文件路径)：未实现
 
@@ -125,7 +125,7 @@ Socket_Core Server(1233);
 
 #### 方法
 
-+ write(const char *msg)：向远程发送信息
++ Write(const char *msg)：向远程发送信息
 + RegistCallback( std::function<void(const char *)> Recive_Callback)：注册回调函数
 + 客户端连接时回调函数注册：未实现
 + 发送文件(const char *文件路径)：未实现

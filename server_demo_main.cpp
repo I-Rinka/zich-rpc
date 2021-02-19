@@ -13,7 +13,7 @@ int main(int argc, char const *argv[])
     Server.RegistCallback(ThisIsAFunction);
     while (std::cin.getline(line, 1000))
     {
-        Server.write(line);
+        Server.Write(line);
     }
     return 0;
 }
