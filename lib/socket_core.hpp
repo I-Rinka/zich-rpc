@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include <boost/asio.hpp>
+#include <functional>
 using boost::asio::ip::tcp;
 class Socket_Core
 {
@@ -7,22 +8,20 @@ private:
     /* data */
     int max_len = 1000000;
     int one_socket_len = 2048;
+
     void first_accept()
     {
         acceptor_->async_accept(
             [this](boost::system::error_code ec, tcp::socket _socket) {
                 if (!ec)
                 {
-                    // this->socket_ = (tcp::socket *)malloc(sizeof(tcp::socket));
-                    // memcpy(this->socket_, &_socket, sizeof(tcp::socket));
                     this->socket_ = new tcp::socket(std::move(_socket));
                     this->do_regist();
                     this->do_accept();
                 }
                 else
                 {
-                    // std::cout << ec << std::endl;
-                    std::cout << ec.value() << std::endl;
+                    // std::cout << ec.value() << std::endl;
                 }
             });
     }
@@ -39,7 +38,7 @@ private:
                 else
                 {
                     // std::cout << ec << std::endl;
-                    std::cout << ec.value() << std::endl;
+                    // std::cout << ec.value() << std::endl;
                 }
             });
     }
@@ -62,7 +61,7 @@ private:
                                             printf("断开连接");
                                         }
 
-                                        std::cout << ec.value() << std::endl;
+                                        // std::cout << ec.value() << std::endl;
                                     }
                                 });
     }
@@ -89,12 +88,14 @@ private:
                                         else
                                         {
                                             this->message_read = this->message_read_head;
-                                            std::cout << this->message_read << std::endl;
+                                            // std::cout << this->message_read << std::endl;
+                                            //读完了,在这里放回调,先别急着清空鸭
+                                            // std::cout<<"为啥来了的消息不进回调?"<<std::endl;
+                                            this->Recive_Callback(this->message_read);
+                                            // std::cout<<"为啥来了的消息不进回调?"<<std::endl;
                                             memset(this->message_read, 0, this->max_len);
                                             this->message_remain_to_read = 0;
                                             this->do_read_len();
-
-                                            //读完了,在这里放回调,先别急着清空鸭
                                         }
                                     }
                                     else
@@ -112,7 +113,6 @@ private:
     {
         char msg_len[11];
         sprintf(msg_len, "%10d", this->message_remain_to_write);
-        // boost::asio::write(*socket_, boost::asio::buffer(this->msg_len, 11));
         boost::asio::async_write(*socket_, boost::asio::buffer(msg_len, 10),
                                  [this](boost::system::error_code ec, std::size_t /*length*/) {
                                      if (!ec)
@@ -122,7 +122,7 @@ private:
 
                                      else
                                      {
-                                         std::cout << ec.value() << std::endl;
+                                        //  std::cout << ec.value() << std::endl;
                                      }
                                  });
     }
@@ -155,7 +155,7 @@ private:
 
                                      else
                                      {
-                                         std::cout << ec.value() << std::endl;
+                                        //  std::cout << ec.value() << std::endl;
                                      }
                                  });
     }
@@ -167,11 +167,6 @@ private:
     char *message_write_head = NULL;
     char *message_read_head = NULL;
     char rcv_len[11];
-
-public:
-    Socket_Core(const char *host, const char *port);
-    Socket_Core(int port);
-    ~Socket_Core();
     boost::asio::io_context *io_context_ = NULL;
     tcp::socket *socket_ = NULL;
     tcp::acceptor *acceptor_ = NULL;
@@ -181,6 +176,16 @@ public:
     int message_remain_to_write = 0;
     int message_remain_to_read = 0;
 
+public:
+    Socket_Core(const char *host, const char *port);
+    Socket_Core(int port);
+    Socket_Core(const char *port);
+    ~Socket_Core();
+    std::function<void(const char *)> Recive_Callback;
+    void RegistCallback( std::function<void(const char *)> Recive_Callback)
+    {
+        this->Recive_Callback=Recive_Callback;
+    }
     void write(char *msg)
     {
         int len = strnlen(msg, max_len);
@@ -189,7 +194,7 @@ public:
         strncpy(this->message_write, msg, len);
         if (this->socket_ == NULL)
         {
-            std::cout<<"NO Socket Available!"<<std::endl;
+            printf("NO Socket Available!");
         }
         else
         {
@@ -198,6 +203,7 @@ public:
     }
 };
 
+//客户端构造
 Socket_Core::Socket_Core(const char *host, const char *port)
 {
     this->io_context_ = new boost::asio::io_context();
@@ -215,6 +221,8 @@ Socket_Core::Socket_Core(const char *host, const char *port)
     do_regist();
     std::thread *t = new std::thread([this]() { this->io_context_->run(); });
 }
+
+//服务器构造
 Socket_Core::Socket_Core(int port)
 {
     this->io_context_ = new boost::asio::io_context();
@@ -229,6 +237,12 @@ Socket_Core::Socket_Core(int port)
     std::thread *t = new std::thread([this]() { this->io_context_->run(); });
 }
 
+Socket_Core::Socket_Core(const char*port):Socket_Core(atoi(port))
+{
+
+}
+
 Socket_Core::~Socket_Core()
 {
+    //还没写析构
 }
