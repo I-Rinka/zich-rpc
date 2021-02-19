@@ -5,6 +5,8 @@ class Socket_Core
 {
 private:
     /* data */
+    int max_len = 1000000;
+    int one_socket_len = 2048;
     void first_accept()
     {
         acceptor_->async_accept(
@@ -66,24 +68,33 @@ private:
     }
     void do_read()
     {
+        int len_to_read = this->one_socket_len;
+        if (len_to_read > this->message_remain_to_read)
+        {
+            len_to_read = this->message_remain_to_read;
+        }
 
-        boost::asio::async_read(*this->socket_, boost::asio::buffer(this->message_read, this->message_remain_to_read),
+        boost::asio::async_read(*this->socket_, boost::asio::buffer(this->message_read, len_to_read),
                                 [this](boost::system::error_code ec, std::size_t /*length*/) {
-                                    this->message_remain_to_read -= 4096;
+                                    this->message_remain_to_read -= this->one_socket_len;
+
                                     if (!ec)
                                     {
                                         if (this->message_remain_to_read > 0)
                                         {
-                                            std::cout << this->message_remain_to_read << std::endl;
-                                            this->message_remain_to_read += 4096;
+
+                                            this->message_read += this->one_socket_len;
                                             this->do_read();
                                         }
                                         else
                                         {
                                             this->message_read = this->message_read_head;
-                                            memset(this->message_read, 0, INT32_MAX);
+                                            std::cout << this->message_read << std::endl;
+                                            memset(this->message_read, 0, this->max_len);
                                             this->message_remain_to_read = 0;
                                             this->do_read_len();
+
+                                            //读完了,在这里放回调,先别急着清空鸭
                                         }
                                     }
                                     else
@@ -102,8 +113,7 @@ private:
         char msg_len[11];
         sprintf(msg_len, "%10d", this->message_remain_to_write);
         // boost::asio::write(*socket_, boost::asio::buffer(this->msg_len, 11));
-        boost::asio::async_write(*socket_,
-                                 boost::asio::buffer(msg_len, 10),
+        boost::asio::async_write(*socket_, boost::asio::buffer(msg_len, 10),
                                  [this](boost::system::error_code ec, std::size_t /*length*/) {
                                      if (!ec)
                                      {
@@ -118,22 +128,28 @@ private:
     }
     void do_write()
     {
+        int len_to_write = this->one_socket_len;
+        if (len_to_write > this->message_remain_to_write)
+        {
+            len_to_write = this->message_remain_to_write;
+        }
+
         boost::asio::async_write(*socket_,
-                                 boost::asio::buffer(this->message_write, this->message_remain_to_write),
+                                 boost::asio::buffer(this->message_write, len_to_write),
                                  [this](boost::system::error_code ec, std::size_t /*length*/) {
+                                     this->message_remain_to_write -= this->one_socket_len;
                                      if (!ec)
                                      {
-                                         this->message_remain_to_write -= 4096;
                                          if (this->message_remain_to_write > 0)
                                          {
-                                             this->message_remain_to_write += 4096;
+                                             this->message_write += this->one_socket_len;
                                              do_write(); //继续写
                                          }
                                          else
                                          {
                                              this->message_remain_to_write = 0;
                                              this->message_write = this->message_write_head;
-                                             memset(this->message_write, 0, INT32_MAX);
+                                             memset(this->message_write, 0, this->max_len);
                                          }
                                      }
 
@@ -146,7 +162,7 @@ private:
 
     void do_regist()
     {
-        do_read_header();
+        do_read_len();
     }
     char *message_write_head = NULL;
     char *message_read_head = NULL;
@@ -156,9 +172,9 @@ public:
     Socket_Core(const char *host, const char *port);
     Socket_Core(int port);
     ~Socket_Core();
-    boost::asio::io_context *io_context_;
-    tcp::socket *socket_;
-    tcp::acceptor *acceptor_;
+    boost::asio::io_context *io_context_ = NULL;
+    tcp::socket *socket_ = NULL;
+    tcp::acceptor *acceptor_ = NULL;
 
     char *message_write = NULL;
     char *message_read = NULL;
@@ -167,29 +183,26 @@ public:
 
     void write(char *msg)
     {
-        int len = strnlen(msg, INTMAX_MAX);
+        int len = strnlen(msg, max_len);
         this->message_remain_to_write = len;
-        /*
-        if (len > message_length)
+
+        strncpy(this->message_write, msg, len);
+        if (this->socket_ == NULL)
         {
-            if (message != NULL)
-            {
-                delete this->message;
-            }
-            this->message = (char *)malloc(len);
+            std::cout<<"NO Socket Available!"<<std::endl;
         }
-        this->message_length = len;
-        */
-        strncpy(this->message_remain_to_write, msg, len);
-        do_write_len();
+        else
+        {
+            do_write_len();
+        }
     }
 };
 
 Socket_Core::Socket_Core(const char *host, const char *port)
 {
     this->io_context_ = new boost::asio::io_context();
-    this->message_read = (char *)malloc(INT32_MAX);
-    this->message_write = (char *)malloc(INT32_MAX);
+    this->message_read = (char *)malloc(max_len);
+    this->message_write = (char *)malloc(max_len);
     this->message_write_head = this->message_write;
     this->message_read_head = this->message_read;
 
@@ -205,8 +218,8 @@ Socket_Core::Socket_Core(const char *host, const char *port)
 Socket_Core::Socket_Core(int port)
 {
     this->io_context_ = new boost::asio::io_context();
-    this->message_read = (char *)malloc(INT32_MAX);
-    this->message_write = (char *)malloc(INT32_MAX);
+    this->message_read = (char *)malloc(max_len);
+    this->message_write = (char *)malloc(max_len);
     this->message_write_head = this->message_write;
     this->message_read_head = this->message_read;
 

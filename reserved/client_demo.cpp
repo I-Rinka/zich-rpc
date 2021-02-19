@@ -2,8 +2,8 @@
 int main(int argc, char const *argv[])
 {
     Socket_Core Client("127.0.0.1", "1233");
-    char *line = (char *)malloc(INT32_MAX);
-    while (std::cin.getline(line, INT32_MAX))
+    char *line = (char *)malloc(1000000);
+    while (std::cin.getline(line, 100000))
     {
         //写是同步事件
         // std::cout << line << std::endl;
