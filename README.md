@@ -1,5 +1,7 @@
 # Excuteble Socket Core
 
+Use light weight lib `mpack` for serialization <https://github.com/ludocode/mpack>
+
 ## Todo
 
 - [x] 字符串切割BUG
@@ -68,7 +70,7 @@ Client.Recive_Callback = [](const char *message)
 {
     /*do some thing about the const chat *message */
     
-	printf("来了一条消息!\n它的内容是:\n");
+ printf("来了一条消息!\n它的内容是:\n");
     std::cout<<message<<std::endl; 
 };
 ```
@@ -95,19 +97,19 @@ Server.RegistCallback(ThisIsAFunction);
 
 更多关于lambda表达式的说明详见：
 
-https://docs.microsoft.com/zh-cn/cpp/cpp/lambda-expressions-in-cpp?view=msvc-160
+<https://docs.microsoft.com/zh-cn/cpp/cpp/lambda-expressions-in-cpp?view=msvc-160>
 
 [C++11 lambda表达式精讲 (biancheng.net)](http://c.biancheng.net/view/3741.html)
 
 #### 方法
 
-+ Write(const char *msg)：向远程发送信息
-+ RegistCallback( std::function<void(const char *)> Recive_Callback)：注册回调函数
-+ 发送文件(const char *文件路径)：未实现
+- Write(const char *msg)：向远程发送信息
+- RegistCallback( std::function<void(const char *)> Recive_Callback)：注册回调函数
+- 发送文件(const char *文件路径)：未实现
 
 #### Tips
 
-+ 回调函数会接受远端传来的`const char*`，即这段内存是不允许修改的。若要对内容进行处理，建议使用`strnlen(message,Socket_Core::max_len)`查询收到的字符串的长度后再拷贝到指定位置`strncpy(dest,message,len)`后再做处理
+- 回调函数会接受远端传来的`const char*`，即这段内存是不允许修改的。若要对内容进行处理，建议使用`strnlen(message,Socket_Core::max_len)`查询收到的字符串的长度后再拷贝到指定位置`strncpy(dest,message,len)`后再做处理
 
 ### 服务器端
 
@@ -125,7 +127,7 @@ Socket_Core Server(1233);
 
 #### 方法
 
-+ Write(const char *msg)：向远程发送信息
-+ RegistCallback( std::function<void(const char *)> Recive_Callback)：注册回调函数
-+ 客户端连接时回调函数注册：未实现
-+ 发送文件(const char *文件路径)：未实现
+- Write(const char *msg)：向远程发送信息
+- RegistCallback( std::function<void(const char *)> Recive_Callback)：注册回调函数
+- 客户端连接时回调函数注册：未实现
+- 发送文件(const char *文件路径)：未实现
