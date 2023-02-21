@@ -1,4 +1,5 @@
 #include "zcrpc.h"
+#include <functional>
 
 enum class function_name
 {
@@ -12,8 +13,7 @@ public:
     void Hi(const Request *rq, Response *rs);
     ServerRPC()
     {
-        // bind and placeholders
-        RPC_Core::server_register_function(function_name::hello, Hi);
+        RPC_Core::server_register_function(function_name::hello, &this->Hi);
     }
 };
 

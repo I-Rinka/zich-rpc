@@ -60,9 +60,9 @@ protected:
         // func_map[key] = service_function;
     }
 
-    void server_register_function(function_key key, void(RPC_Core *)(const Request *rq, Response *rs) service_function)
+    void server_register_function(function_key key, void(*service_function)(RPC_Core *, const Request *, Response *))
     {
-        // func_map[key] = service_function;
+        func_map[key] = service_function;
     }
 
     void server_run(); // address?
