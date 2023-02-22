@@ -4,6 +4,19 @@ Use light weight lib `mpack` for serialization <https://github.com/ludocode/mpac
 
 ZilCh RPC.
 
+Serialization design: tuple -> pack.
+
+Format design:
+
+```txt
+    Pack: `size:`<usigned-int>`\n`Element
+    Element -> i64 | f64 | string | array | '\n' | Element
+    i64 -> `i64:`<long-long>
+    f64 -> `f64:`<double>
+    string -> `string:`<no-zero-c-str>
+    array -> `array:[`Element`\n]`
+```
+
 ## Todo
 
 - [x] 字符串切割BUG
