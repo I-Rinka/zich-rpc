@@ -13,26 +13,33 @@ void pointer_func(int a, double b, string str)
 {
 }
 
-int main(int argc, char const *argv[])
+class my_functor
 {
-    // function pointer test
-    TEST((std::is_same<void, function_traits<decltype(pointer_func)>::return_type>::value));
-    TEST((std::is_same<double, function_traits<decltype(pointer_func)>::nth_type<1>>::value));
-    TEST((std::is_same<string, function_traits<decltype(pointer_func)>::nth_type<2>>::value));
-    TEST(function_traits<decltype(pointer_func)>::args_num == 3);
-
-    auto lamb = [](int &&a, double &b) -> vector<int>
+public:
+    vector<int> operator()(long long a, vector<string> b)
     {
         return {};
-    };
+    }
+};
 
-    TEST((std::is_same<vector<int>, function_traits<decltype(lamb)>::return_type>::value)); // Directly test lambda is broken
-    // TEST((std::is_same<vector<int>, function_traits<decltype(lamb)>::return_type>::value));
-    std::function<vector<int>(int &&, double &)> f(lamb);
-    std::cout << function_traits<decltype(f)>::args_num << endl;
+int main(int argc, char const *argv[])
+{
+    TEST((std::is_same<void, function_traits<decltype(&pointer_func)>::return_type>::value));
+    TEST((std::is_same<std::string, function_traits<decltype(&pointer_func)>::nth_type<2>>::value));
+    TEST((function_traits<decltype(&pointer_func)>::arity == 3));
+    cout << "function pointer test OK" << endl;
 
-    // TEST((std::is_same<int&&, function_traits<decltype(lamb)>::nth_type<0>::type>::value));
-    // TEST((std::is_same<double&, function_traits<decltype(lamb)>::nth_type<1>::type>::value));
+    TEST((std::is_same<vector<int>, function_traits<decltype(&my_functor::operator())>::return_type>::value)); // There are two ways to pass functor
+    TEST((std::is_same<long long, function_traits<my_functor>::nth_type<0>>::value));
+    TEST((function_traits<my_functor>::arity == 2));
+    cout << "functor test OK" << endl;
+
+    auto lamb = [](double d) -> long long
+    { return 2; };
+    TEST((std::is_same<long long, function_traits<decltype(lamb)>::return_type>::value));
+    TEST((std::is_same<double, function_traits<decltype(lamb)>::nth_type<0>>::value));
+    TEST((function_traits<decltype(lamb)>::arity == 1));
+    cout << "lambda test OK" << endl;
 
     return 0;
 }

@@ -2,42 +2,40 @@
 #include <tuple>
 
 template <typename F>
-struct function_traits
-{
-    constexpr static size_t args_num = 0;
-    using return_type = F;
-};
+struct function_traits;
 
-template <typename F, typename T>
-struct function_traits<F(T)>
-{
-    template <size_t N>
-    struct _nth_type
-    {
-        using type = T;
-    };
-
-    constexpr static size_t args_num = 1;
-    using return_type = F;
-
-    template <std::size_t N>
-    using nth_type = typename _nth_type<N>::type;
-};
-
+// Function pointer specialization
 template <typename F, typename... Args>
-struct function_traits<F(Args...)>
+struct function_traits<F (*)(Args...)>
 {
-    template <size_t N>
-    struct _nth_type
-    {
-        static_assert(N < sizeof...(Args), "Function arguments count does not match!");
-        using type = typename std::tuple_element<N, std::tuple<Args...>>::type;
-    };
-
-    constexpr static size_t args_num = sizeof...(Args);
-
+    constexpr static size_t arity = sizeof...(Args);
     using return_type = F;
+    template <size_t N>
+    using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
+};
 
-    template <std::size_t N>
-    using nth_type = typename _nth_type<N>::type;
+// Functor const specialization
+template <typename F, typename Class, typename... Args>
+struct function_traits<F (Class::*)(Args...) const>
+{
+    constexpr static size_t arity = sizeof...(Args);
+    using return_type = F;
+    template <size_t N>
+    using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
+};
+
+// Lambda specialization
+template <typename L>
+struct function_traits : public function_traits<decltype(&L::operator())>
+{
+};
+
+// Functor specialization
+template <typename F, typename Class, typename... Args>
+struct function_traits<F (Class::*)(Args...)>
+{
+    constexpr static size_t arity = sizeof...(Args);
+    using return_type = F;
+    template <size_t N>
+    using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
 };
