@@ -77,3 +77,9 @@ int main(int argc, char const *argv[])
 
     return 0;
 }
+
+/**
+ * 1. Get the type of all arguments
+ * 2. Get the count of all arguments
+ * 3. Serializer should perform exactly the amount of operations according to the binded function2
+*/

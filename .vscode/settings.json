@@ -94,6 +94,7 @@
         "compare": "cpp",
         "concepts": "cpp",
         "ios": "cpp",
-        "locale": "cpp"
+        "locale": "cpp",
+        "__memory": "cpp"
     }
 }
