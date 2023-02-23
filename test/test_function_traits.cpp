@@ -27,6 +27,9 @@ int main(int argc, char const *argv[])
     TEST((std::is_same<void, function_traits<decltype(&pointer_func)>::return_type>::value));
     TEST((std::is_same<std::string, function_traits<decltype(&pointer_func)>::nth_type<2>>::value));
     TEST((function_traits<decltype(&pointer_func)>::arity == 3));
+    TEST((std::is_same<void, function_traits<decltype(pointer_func)>::return_type>::value));
+    TEST((std::is_same<std::string, function_traits<decltype(pointer_func)>::nth_type<2>>::value));
+    TEST((function_traits<decltype(pointer_func)>::arity == 3));
     cout << "function pointer test OK" << endl;
 
     TEST((std::is_same<vector<int>, function_traits<decltype(&my_functor::operator())>::return_type>::value)); // There are two ways to pass functor

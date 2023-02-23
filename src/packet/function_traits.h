@@ -14,6 +14,16 @@ struct function_traits<F (*)(Args...)>
     using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
 };
 
+// Function pointer specialization
+template <typename F, typename... Args>
+struct function_traits<F(Args...)>
+{
+    constexpr static size_t arity = sizeof...(Args);
+    using return_type = F;
+    template <size_t N>
+    using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
+};
+
 // Functor const specialization
 template <typename F, typename Class, typename... Args>
 struct function_traits<F (Class::*)(Args...) const>
