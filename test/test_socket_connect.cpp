@@ -6,20 +6,22 @@
 #include <chrono>
 
 using namespace std;
+
+#define TEST_SCALE 10
+#define PACK_SIZE 1000
+
+vector<string> test_v;
+
 void process_request(ServerSocket &ss)
 {
     auto client = ss.accept();
 
-    while (true)
+    int round = 0;
+    for (int i = 0; i < test_v.size(); i++)
     {
-        // client.send("Hello! World!\n");
         auto rcv = client.recv();
-        std::cout << "server received: " << rcv << endl;
-
-        client.send(string("echo from server!: ") + rcv);
+        client.send(rcv);
     }
-
-    process_request(ss);
 }
 
 static const uint16_t PORT = 5005;
@@ -39,23 +41,38 @@ void client_thread()
 
     string msg;
 
-    while (true)
+    for (int i = 0; i < TEST_SCALE; i++)
     {
-        cin >> msg;
-        cs.send(msg);
+        cs.send(test_v[i]);
+        auto recv = cs.recv();
 
-        this_thread::sleep_for(chrono::milliseconds(10));
-        cout << "client received: " << cs.recv() << endl;
+        bool ok = TEST((recv == test_v[i]));
+        if (!ok)
+        {
+            std::cout << "expected: " << test_v[i] << ", received: " << recv << endl;
+            this_thread::sleep_for(chrono::milliseconds(300));
+        }
+    }
+    cs.close();
+}
+
+void generate_test_case()
+{
+    for (int i = 0; i < TEST_SCALE; i++)
+    {
+        test_v.push_back(GetRandomString(PACK_SIZE));
     }
 }
 
 int main(int argc, char **argv)
 {
+    generate_test_case();
+
     thread t(server_thread);
 
     this_thread::sleep_for(chrono::milliseconds(100));
     client_thread();
-    t.join();
 
+    t.join();
     return 0;
 }

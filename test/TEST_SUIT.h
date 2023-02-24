@@ -8,3 +8,23 @@
     {                                                                                                                                                    \
         std::cout << "\033[1;32m[Pass]\033[0m " << __FILE__ << ":" << __LINE__ << endl;                                                                  \
     }
+
+#include <random>
+#include <string>
+using namespace std;
+
+string GetRandomString(int max_len = 15)
+{
+    string ans;
+    random_device rd;
+    mt19937_64 seed(rd());
+    uniform_int_distribution<> strc('a', 'z');
+    uniform_int_distribution<> strl(1, max_len);
+
+    int l = strl(seed);
+    for (int i = 0; i < l; i++)
+    {
+        ans.push_back(strc(seed));
+    }
+    return ans;
+}

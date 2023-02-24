@@ -68,8 +68,10 @@ public:
     //! \return std::string that stores data
     virtual std::string recv() { return _socket->recv(); };
 
+    virtual void close();
+
     //! \brief This is close() semetics of socket
-    virtual ~ClientSocket() = default;
+    virtual ~ClientSocket();
 };
 
 class ServerSocket
@@ -103,7 +105,7 @@ public:
     TCPSocket accept();
 
     //! \brief This is close() semetics of socket
-    virtual ~ServerSocket() = default;
+    virtual ~ServerSocket();
 
     //! \brief Socket send data in the string
     //! \return The number of byte that is sent. Which means it might not send all of the chars in the string
@@ -154,7 +156,12 @@ TCPSocket::TCPSocket(int &&sockfd)
 
 TCPSocket::~TCPSocket()
 {
-    close(_sockfd);
+    if (_sockfd != -1)
+    {
+        ::close(_sockfd);
+        // std::cout << "IP:" << IP << ", port:" << port << " closed" << std::endl;
+    }
+
     if (_buffer != nullptr)
     {
         delete _buffer;
@@ -247,6 +254,15 @@ TCPSocket ServerSocket::accept()
     return sock;
 }
 
+inline ServerSocket::~ServerSocket()
+{
+    if (_socket != nullptr)
+    {
+        delete _socket;
+        _socket = nullptr;
+    }
+}
+
 /**
  * @brief Client Socket Class Implementation
  */
@@ -271,4 +287,19 @@ bool ClientSocket::connect(std::string ip, uint16_t port)
 
     int ret = ::connect(*_socket, (sockaddr *)(&server_addr), sizeof(server_addr));
     return ret == 0;
+}
+
+void ClientSocket::close()
+{
+    delete this->_socket;
+    this->_socket = nullptr;
+}
+
+ClientSocket::~ClientSocket()
+{
+    if (this->_socket != nullptr)
+    {
+        delete this->_socket;
+        this->_socket = nullptr;
+    }
 }
