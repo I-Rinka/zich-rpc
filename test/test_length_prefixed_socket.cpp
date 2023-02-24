@@ -1,3 +1,4 @@
+#include "../src/network/length_prefixed_socket.h"
 #include "../src/network/socket_connect.h"
 #include "TEST_SUIT.h"
 #include <iostream>
@@ -8,12 +9,12 @@
 using namespace std;
 
 #define TEST_SCALE 10
-#define PACK_SIZE 1023 // size 1024 makes TCP stream broken
-static const uint16_t PORT = 5001;
+#define PACK_SIZE ((1 << 16) - 1) // size 1024 makes TCP stream broken
+static const uint16_t PORT = 5002;
 
 vector<string> test_v;
 
-void process_request(ServerSocket<TCPSocket> &ss)
+void process_request(ServerSocket<LengthPrefixedSocket> &ss)
 {
     auto client = ss.accept();
 
@@ -27,19 +28,18 @@ void process_request(ServerSocket<TCPSocket> &ss)
     std::cout << "client said good bye:" << rcv.size() << std::endl;
 }
 
-
 void server_thread()
 {
     std::cout << "Thread " << std::this_thread::get_id() << " created" << endl;
 
-    ServerSocket<TCPSocket> ss(PORT);
+    ServerSocket<LengthPrefixedSocket> ss(PORT);
     process_request(ss);
     // this_thread::sleep_for(chrono::milliseconds(500));
 }
 
 void client_thread()
 {
-    ClientSocket<TCPSocket> cs;
+    ClientSocket<LengthPrefixedSocket> cs;
     cs.connect("127.0.0.1", PORT);
 
     string msg;
@@ -56,6 +56,7 @@ void client_thread()
             this_thread::sleep_for(chrono::milliseconds(300));
         }
     }
+    cs.close();
 }
 
 void generate_test_case()
@@ -72,6 +73,7 @@ int main(int argc, char **argv)
     generate_test_case();
 
     thread t(server_thread);
+    // server_thread();
 
     this_thread::sleep_for(chrono::milliseconds(100));
     client_thread();

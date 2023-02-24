@@ -8,6 +8,9 @@
 #include <string.h>
 #include <netdb.h>
 
+#ifndef __SOCKET_CONNECT_H_
+#define __SOCKET_CONNECT_H_
+
 class TCPSocket
 {
 protected:
@@ -43,6 +46,7 @@ public:
     operator int() const;
 };
 
+template <typename CustomizedSocket>
 class ClientSocket
 {
 protected:
@@ -54,8 +58,8 @@ public:
 
     //! \brief Claim client socket without address
     //! \note If you call the default version, you need to call .connect() and .listen() after that
-    ClientSocket() : _socket(new TCPSocket()){};
-    ClientSocket(std::string ip, uint16_t port) : _socket(new TCPSocket()) { connect(ip, port); };
+    ClientSocket() : _socket(new CustomizedSocket()){};
+    ClientSocket(std::string ip, uint16_t port) : _socket(new CustomizedSocket()) { connect(ip, port); };
 
     //! \brief Connect to the target server
     bool connect(std::string ip, uint16_t port);
@@ -74,6 +78,7 @@ public:
     virtual ~ClientSocket();
 };
 
+template <typename CustomizedSocket>
 class ServerSocket
 {
 protected:
@@ -85,7 +90,7 @@ public:
 
     //! \brief Claim server socket without bind address
     //! \note If you call the default version, you need to call .bind(port) after that
-    ServerSocket() : _socket(new TCPSocket()){};
+    ServerSocket() : _socket(new CustomizedSocket()){};
 
     //! \brief Claim server socket and bind address
     //! \param connection_volume is the maxium acceptable client
@@ -102,7 +107,7 @@ public:
 
     //! \brief returns socket of connecting client
     //! \return TCPSocket of connecting client
-    TCPSocket accept();
+    CustomizedSocket accept();
 
     //! \brief This is close() semetics of socket
     virtual ~ServerSocket();
@@ -209,13 +214,15 @@ TCPSocket::operator int() const
  * @brief ServerSocket Class Implementation
  */
 
-ServerSocket::ServerSocket(uint16_t port, int connection_volume) : _socket(new TCPSocket())
+template <typename CustomizedSocket>
+ServerSocket<CustomizedSocket>::ServerSocket(uint16_t port, int connection_volume) : _socket(new CustomizedSocket())
 {
     this->bind(port);
     this->listen(connection_volume);
 }
 
-bool ServerSocket::bind(uint16_t port)
+template <typename CustomizedSocket>
+bool ServerSocket<CustomizedSocket>::bind(uint16_t port)
 {
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
@@ -231,17 +238,19 @@ bool ServerSocket::bind(uint16_t port)
     return ret == 0;
 }
 
-bool ServerSocket::listen(int connection_volume)
+template <typename CustomizedSocket>
+bool ServerSocket<CustomizedSocket>::listen(int connection_volume)
 {
     return ::listen(*_socket, connection_volume) == 0;
 }
 
-TCPSocket ServerSocket::accept()
+template <typename CustomizedSocket>
+CustomizedSocket ServerSocket<CustomizedSocket>::accept()
 {
     int socklen = sizeof(sockaddr_in);
     struct sockaddr_in client_addr;
 
-    TCPSocket sock = ::accept(*_socket, (struct sockaddr *)&client_addr, (socklen_t *)&socklen);
+    CustomizedSocket sock = ::accept(*_socket, (struct sockaddr *)&client_addr, (socklen_t *)&socklen);
 
     sock.port = client_addr.sin_port;
 
@@ -254,7 +263,8 @@ TCPSocket ServerSocket::accept()
     return sock;
 }
 
-inline ServerSocket::~ServerSocket()
+template <typename CustomizedSocket>
+inline ServerSocket<CustomizedSocket>::~ServerSocket()
 {
     if (_socket != nullptr)
     {
@@ -266,8 +276,8 @@ inline ServerSocket::~ServerSocket()
 /**
  * @brief Client Socket Class Implementation
  */
-
-bool ClientSocket::connect(std::string ip, uint16_t port)
+template <typename CustomizedSocket>
+bool ClientSocket<CustomizedSocket>::connect(std::string ip, uint16_t port)
 {
     _socket->IP = ip;
     _socket->port = port;
@@ -289,13 +299,15 @@ bool ClientSocket::connect(std::string ip, uint16_t port)
     return ret == 0;
 }
 
-void ClientSocket::close()
+template <typename CustomizedSocket>
+void ClientSocket<CustomizedSocket>::close()
 {
     delete this->_socket;
     this->_socket = nullptr;
 }
 
-ClientSocket::~ClientSocket()
+template <typename CustomizedSocket>
+ClientSocket<CustomizedSocket>::~ClientSocket()
 {
     if (this->_socket != nullptr)
     {
@@ -303,3 +315,4 @@ ClientSocket::~ClientSocket()
         this->_socket = nullptr;
     }
 }
+#endif

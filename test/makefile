@@ -1,3 +1,7 @@
+length_prefixed_socket: test_length_prefixed_socket.cpp
+	g++ $^ -o test.out -std=c++11 -lpthread
+	./test.out
+
 socket_connect: test_socket_connect.cpp
 	g++ $^ -o test.out -std=c++11 -lpthread
 	./test.out
