@@ -8,8 +8,8 @@
 using namespace std;
 
 #define TEST_SCALE 10
-#define PACK_SIZE 1000 
-static const uint16_t PORT = 5000;
+#define PACK_SIZE 1023 // size 1024 makes TCP stream broken
+static const uint16_t PORT = 5001;
 
 vector<string> test_v;
 
@@ -62,7 +62,8 @@ void generate_test_case()
 {
     for (int i = 0; i < TEST_SCALE; i++)
     {
-        test_v.push_back(GetRandomString(PACK_SIZE));
+        test_v.push_back(GetRandomString_fx(PACK_SIZE));
+        // test_v.push_back(GetRandomString(PACK_SIZE));
     }
 }
 
