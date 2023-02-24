@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <string>
 #include <string.h>
+#include <netdb.h>
 
 class TCPSocket
 {
@@ -185,7 +186,7 @@ std::string TCPSocket::recv()
     int recved = ::recv(_sockfd, _buffer, _buffer_size - 1, 0);
     if (recved == -1)
     {
-        throw std::runtime_error("Packet sent error");
+        throw std::runtime_error("Packet recv error");
     }
     _buffer[recved] = 0;
 
@@ -255,12 +256,19 @@ bool ClientSocket::connect(std::string ip, uint16_t port)
     _socket->IP = ip;
     _socket->port = port;
 
+    hostent *h;
+    if ((h = gethostbyname(ip.c_str())) == 0)
+    {
+        // throw std::runtime_error("client gethostbyname error");
+        return false;
+    }
+
     sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = port;
-    server_addr.sin_addr.s_addr = inet_addr(ip.c_str());
+    server_addr.sin_port = htons(port);
+    memcpy(&server_addr.sin_addr, h->h_addr, h->h_length);
 
     int ret = ::connect(*_socket, (sockaddr *)(&server_addr), sizeof(server_addr));
-    return ret != -1;
+    return ret == 0;
 }

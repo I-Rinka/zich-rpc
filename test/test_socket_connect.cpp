@@ -3,7 +3,8 @@
 #include <iostream>
 #include <thread>
 #include <string>
-#include <string.h>
+#include <chrono>
+
 using namespace std;
 void process_request(ServerSocket &ss)
 {
@@ -11,12 +12,9 @@ void process_request(ServerSocket &ss)
 
     while (true)
     {
+        // client.send("Hello! World!\n");
         auto rcv = client.recv();
-        if (rcv.size() == 0)
-        {
-            break;
-        }
-        std::cout << rcv << endl;
+        std::cout << "server received: " << rcv << endl;
 
         client.send(string("echo from server!: ") + rcv);
     }
@@ -24,30 +22,40 @@ void process_request(ServerSocket &ss)
     process_request(ss);
 }
 
-#define PORT 6666
+static const uint16_t PORT = 5005;
 
-int server_thread()
+void server_thread()
 {
+    std::cout << "Thread " << std::this_thread::get_id() << " created" << endl;
+
     ServerSocket ss(PORT);
     process_request(ss);
-    return 0;
 }
 
-int main(int argc, char **argv)
+void client_thread()
 {
-    std::thread(server_thread);
-
     ClientSocket cs;
     cs.connect("127.0.0.1", PORT);
 
     string msg;
+
     while (true)
     {
         cin >> msg;
         cs.send(msg);
 
-        cout << cs.recv();
+        this_thread::sleep_for(chrono::milliseconds(10));
+        cout << "client received: " << cs.recv() << endl;
     }
+}
+
+int main(int argc, char **argv)
+{
+    thread t(server_thread);
+
+    this_thread::sleep_for(chrono::milliseconds(100));
+    client_thread();
+    t.join();
 
     return 0;
 }
