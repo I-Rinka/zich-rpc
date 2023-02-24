@@ -4,6 +4,7 @@
 #include "TEST_SUIT.h"
 using namespace std;
 #define TEST_SCALE 10000
+#define ARG_SIZE 20
 
 int main(int argc, char const *argv[])
 {
@@ -13,12 +14,13 @@ int main(int argc, char const *argv[])
     uniform_int_distribution<> strr('a', 'z');
     uniform_int_distribution<> strl(1, 10);
     uniform_int_distribution<> ll(INT_MIN, INT_MAX);
+    uniform_int_distribution<> arity(1, ARG_SIZE);
     normal_distribution<> db(10, 0.2);
 
-    for (int r = 0; r < 100; r++)
+    for (int r = 0; r < TEST_SCALE; r++)
     {
-        vector<Element> v;
-        for (int i = 0; i < TEST_SCALE; i++)
+        vector<Element> test_v;
+        for (int i = 0; i < ARG_SIZE; i++)
         {
             string str;
             int l = strl(seed);
@@ -34,15 +36,15 @@ int main(int argc, char const *argv[])
                         str.push_back('\n');
                     }
                 }
-                v.push_back(str);
+                test_v.push_back(str);
                 break;
                 // int
             case 1:
-                v.push_back((long long)ll(seed));
+                test_v.push_back((long long)ll(seed));
                 break;
                 // double
             case 2:
-                v.push_back(db(seed));
+                test_v.push_back(db(seed));
                 break;
             default:
                 break;
@@ -50,28 +52,27 @@ int main(int argc, char const *argv[])
         }
 
         PacketBuilder pb;
-        for (size_t i = 0; i < v.size(); i++)
+        for (size_t i = 0; i < test_v.size(); i++)
         {
-            switch (v[i].type)
+            switch (test_v[i].type)
             {
             case ElementType::STRING:
-                pb.PushString(v[i].data_str);
+                pb.PushString(test_v[i].data_str);
                 break;
             case ElementType::INT:
-                pb.PushI64(v[i].int_val);
+                pb.PushI64(test_v[i].int_val);
                 break;
             case ElementType::FLOAT:
-                pb.PushI64(v[i].float_val);
+                pb.PushF64(test_v[i].float_val);
                 break;
             default:
                 break;
             }
         }
-
         auto v2 = ParsePack(pb.GetResult());
-        auto rs = TEST(v.size() == v2.size());
-        if (!rs)
+        if (!(test_v.size() == v2.size()))
         {
+            TEST(false);
             return -1;
         }
 
@@ -80,26 +81,29 @@ int main(int argc, char const *argv[])
             switch (v2[i].type)
             {
             case ElementType::STRING:
-                if (!(v2[i].data_str == v[i].data_str))
+                if (!(v2[i].data_str == test_v[i].data_str))
                 {
                     TEST(false);
-                    std::cout << "before:" << v[i].data_str << ", after:" << v2[i].data_str << endl;
+                    std::cout << "before:" << test_v[i].data_str << ", after:" << v2[i].data_str << endl;
+                    return -1;
                 }
 
                 break;
             case ElementType::INT:
-                if (!(v2[i].int_val == v[i].int_val))
+                if (!(v2[i].int_val == test_v[i].int_val))
                 {
                     TEST(false);
-                    std::cout << "before:" << v[i].data_str << ", after:" << v2[i].data_str << endl;
+                    std::cout << "before:" << test_v[i].data_str << ", after:" << v2[i].data_str << endl;
+                    return -1;
                 }
 
                 break;
             case ElementType::FLOAT:
-                if (!(fabs(v2[i].float_val - v[i].float_val) > 0.0001))
+                if ((fabs(v2[i].float_val - test_v[i].float_val) > 0.0001))
                 {
                     TEST(false);
-                    std::cout << "before:" << v[i].data_str << ", after:" << v2[i].data_str << endl;
+                    std::cout << "before:" << test_v[i].float_val << ", after:" << v2[i].float_val << endl;
+                    return -1;
                 }
 
                 break;
@@ -108,6 +112,6 @@ int main(int argc, char const *argv[])
             }
         }
     }
-
+    TEST(true);
     return 0;
 }

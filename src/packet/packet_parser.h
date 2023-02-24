@@ -11,6 +11,18 @@ enum class ElementType
     ARRAY
 };
 
+std::string __double_to_binary_str(double db)
+{
+    std::bitset<sizeof(double) * 8> bits(*reinterpret_cast<unsigned long long *>(&db));
+    return bits.to_string();
+}
+
+double __binary_str_to_double(std::string bs)
+{
+    std::bitset<sizeof(double) * 8> bits2(bs);
+    return *reinterpret_cast<double *>(&bits2);
+}
+
 struct Element
 {
     ElementType type;
@@ -29,7 +41,7 @@ struct Element
     {
         type = ElementType::FLOAT;
         float_val = f;
-        data_str = std::string("f64:") + std::to_string(f);
+        data_str = std::string("f64:") + __double_to_binary_str(f);
     }
 
     Element(std::string &str)
@@ -103,7 +115,8 @@ std::pair<Element, std::size_t> __parse_element(const std::string &input, std::s
     {
         elem.type = ElementType::FLOAT;
         elem.data_str = input.substr(pos, input.find('\n', pos) - pos);
-        elem.float_val = std::stod(elem.data_str.substr(4));
+
+        elem.float_val = __binary_str_to_double(elem.data_str.substr(4));
         pos += elem.data_str.size();
     }
     else if (input[pos] == 's' && input.substr(pos, 7) == "string:")
@@ -237,12 +250,12 @@ public:
 
     void PushF64(double f64)
     {
-        _result += "f64:" + std::to_string(f64) + "\n";
+        _result += "f64:" + __double_to_binary_str(f64) + "\n";
         _arity++;
     }
 
     std::string GetResult()
     {
-        return std::string("size:") + std::to_string(_arity) + "\n";
+        return std::string("size:") + std::to_string(_arity) + "\n" + _result + "\n";
     }
 };
