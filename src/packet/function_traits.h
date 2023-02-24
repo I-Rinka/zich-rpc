@@ -49,3 +49,9 @@ struct function_traits<F (Class::*)(Args...)>
     template <size_t N>
     using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
 };
+
+// template <typename F>
+// struct function_arguments_to_tuple
+// {
+//     static
+// };
