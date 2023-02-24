@@ -13,7 +13,7 @@ static const uint16_t PORT = 5001;
 
 vector<string> test_v;
 
-void process_request(ServerSocket<TCPSocket> &ss)
+void process_request(ServerSocket<> &ss)
 {
     auto client = ss.accept();
 
@@ -32,14 +32,14 @@ void server_thread()
 {
     std::cout << "Thread " << std::this_thread::get_id() << " created" << endl;
 
-    ServerSocket<TCPSocket> ss(PORT);
+    ServerSocket<> ss(PORT);
     process_request(ss);
     // this_thread::sleep_for(chrono::milliseconds(500));
 }
 
 void client_thread()
 {
-    ClientSocket<TCPSocket> cs;
+    ClientSocket<> cs;
     cs.connect("127.0.0.1", PORT);
 
     string msg;

@@ -46,7 +46,7 @@ public:
     operator int() const;
 };
 
-template <typename CustomizedSocket>
+template <typename CustomizedSocket = TCPSocket>
 class ClientSocket
 {
 protected:
@@ -78,7 +78,7 @@ public:
     virtual ~ClientSocket();
 };
 
-template <typename CustomizedSocket>
+template <typename CustomizedSocket = TCPSocket>
 class ServerSocket
 {
 protected:
