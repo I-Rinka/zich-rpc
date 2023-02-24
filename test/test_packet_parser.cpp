@@ -1,5 +1,6 @@
 #include <random>
 #include <vector>
+#include <stdint.h>
 #include "../src/packet/packet_parser.h"
 #include "TEST_SUIT.h"
 using namespace std;
@@ -13,7 +14,7 @@ int main(int argc, char const *argv[])
     uniform_int_distribution<> judge(0, 2);
     uniform_int_distribution<> strr('a', 'z');
     uniform_int_distribution<> strl(1, 10);
-    uniform_int_distribution<> ll(INT_MIN, INT_MAX);
+    uniform_int_distribution<> ll(INT32_MIN, INT32_MAX);
     uniform_int_distribution<> arity(1, ARG_SIZE);
     normal_distribution<> db(10, 0.2);
 

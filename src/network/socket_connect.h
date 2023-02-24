@@ -52,7 +52,7 @@ public:
     ClientSocket &operator=(const ClientSocket &) = delete;
 
     //! \brief Claim client socket without address
-    //! \note If you call the default version, you need to call .connect after that
+    //! \note If you call the default version, you need to call .connect() and .listen() after that
     ClientSocket() : _socket(new TCPSocket()){};
     ClientSocket(std::string ip, uint16_t port) : _socket(new TCPSocket()) { connect(ip, port); };
 
@@ -85,7 +85,8 @@ public:
     ServerSocket() : _socket(new TCPSocket()){};
 
     //! \brief Claim server socket and bind address
-    ServerSocket(uint16_t port);
+    //! \param connection_volume is the maxium acceptable client
+    ServerSocket(uint16_t port, int connection_volume = 100);
 
     //! \brief Call it if you use the default constructor.
     //! \return Return false if bind fails
@@ -105,11 +106,11 @@ public:
 
     //! \brief Socket send data in the string
     //! \return The number of byte that is sent. Which means it might not send all of the chars in the string
-    virtual size_t send(const std::string &data) { return _socket->send(data); };
+    virtual size_t send(const std::string &data, TCPSocket &client_socket) { return client_socket.send(data); };
 
     //! \brief Socket receive data stored in the string
     //! \return std::string that stores data
-    virtual std::string recv() { return _socket->recv(); };
+    virtual std::string recv(TCPSocket &client_socket) { return client_socket.recv(); };
 };
 
 // ---------------------------------------Implementation----------------------------------------
@@ -200,9 +201,10 @@ TCPSocket::operator int() const
  * @brief ServerSocket Class Implementation
  */
 
-ServerSocket::ServerSocket(uint16_t port) : _socket(new TCPSocket())
+ServerSocket::ServerSocket(uint16_t port, int connection_volume) : _socket(new TCPSocket())
 {
     this->bind(port);
+    this->listen(connection_volume);
 }
 
 bool ServerSocket::bind(uint16_t port)
@@ -221,7 +223,7 @@ bool ServerSocket::bind(uint16_t port)
     return ret == 0;
 }
 
-bool ServerSocket::listen(int connection_volume = 100)
+bool ServerSocket::listen(int connection_volume)
 {
     return ::listen(*_socket, connection_volume) == 0;
 }
