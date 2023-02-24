@@ -51,32 +51,32 @@ struct functor
     }
 };
 
-void function_pointer(double d, char c)
-{
-    std::cout << d << ' ' << c << std::endl;
-}
+// void function_pointer(double d, char c)
+// {
+//     std::cout << d << ' ' << c << std::endl;
+// }
 
-int main(int argc, char const *argv[])
-{
-    Test t;
-    auto lambda = [&](int a, double b, const char *c)
-    {
-        std::cout << a << std::endl;
-        std::cout << b << std::endl;
-        std::cout << c << std::endl;
-        t.out_count();
-    };
+// int main(int argc, char const *argv[])
+// {
+//     Test t;
+//     auto lambda = [&](int a, double b, const char *c)
+//     {
+//         std::cout << a << std::endl;
+//         std::cout << b << std::endl;
+//         std::cout << c << std::endl;
+//         t.out_count();
+//     };
 
-    call(lambda, std::make_tuple(2333, 3.14, "Hello world!"));
-    call(lambda, std::make_tuple(2, 3.99, "test2"));
-    call(lambda, std::make_tuple(2, 4.5, "test3"));
+//     call(lambda, std::make_tuple(2333, 3.14, "Hello world!"));
+//     call(lambda, std::make_tuple(2, 3.99, "test2"));
+//     call(lambda, std::make_tuple(2, 4.5, "test3"));
 
-    call(functor(), std::make_tuple(5, "test"));
+//     call(functor(), std::make_tuple(5, "test"));
 
-    call(function_pointer, std::make_tuple(6.6, 'x'));
+//     call(function_pointer, std::make_tuple(6.6, 'x'));
 
-    return 0;
-}
+//     return 0;
+// }
 
 /**
  * 1. Get the type of all arguments

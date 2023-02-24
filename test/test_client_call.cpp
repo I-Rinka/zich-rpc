@@ -2,8 +2,8 @@
 #include <tuple>
 #include <iostream>
 #include <array>
-#include "./convert_enum.h"
-#include "print_tuple.h"
+#include "../src/client/call_tuple.h"
+#include "../src/util/print_tuple.h"
 
 template <typename T, typename... Args>
 void call(T func_key, Args... args)
