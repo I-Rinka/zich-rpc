@@ -4,6 +4,9 @@
 #include <vector>
 #include <bitset>
 
+#ifndef _Zichrpc_PACKET_PARSER_H_
+#define _Zichrpc_PACKET_PARSER_H_
+
 enum class ElementType
 {
     INT,
@@ -260,3 +263,5 @@ public:
         return std::string("size:") + std::to_string(_arity) + "\n" + _result + "\n";
     }
 };
+
+#endif

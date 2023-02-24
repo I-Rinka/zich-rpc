@@ -1,6 +1,9 @@
 #include <type_traits>
 #include <tuple>
 
+#ifndef _Zichrpc_FUNCTION__TRAITS_H_
+#define _Zichrpc_FUNCTION__TRAITS_H_
+
 template <typename F>
 struct function_traits;
 
@@ -53,3 +56,4 @@ struct function_traits<F (Class::*)(Args...)>
     using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
     using args_tuple = std::tuple<Args...>;
 };
+#endif

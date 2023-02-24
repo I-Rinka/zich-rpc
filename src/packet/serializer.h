@@ -4,6 +4,9 @@
 #include "function_traits.h"
 // #include <iostream>
 
+#ifndef _Zichrpc_SERIALIZER_H_
+#define _Zichrpc_SERIALIZER_H_
+
 //! \brief A pure virtual class for packet parser to inherit.
 //! This is the adaptor to decode an upcoming string.
 class Decoder
@@ -105,3 +108,4 @@ struct ParameterDecoder
         return __decoder_helper<function_traits<F>::arity>::call(Dc, function);
     }
 };
+#endif
