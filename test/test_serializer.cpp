@@ -33,14 +33,27 @@ public:
     }
 };
 
-void my_func(int a, int b)
+void my_func(int a, double b)
 {
 }
 
+struct my_functor
+{
+    void operator()(double) {}
+};
+
 int main(int argc, char const *argv[])
 {
-    cout << "hello world" << endl;
     auto dc = MyDecoder();
-    auto t = ParameterDecoder::call(dc, my_func);
+    auto t = ParameterDecoder::get(dc, my_func);
+    TEST((std::is_same<tuple_element<1, decltype(t)>::type, double>::value));
+
+    auto lamb = [](std::string) {};
+    auto t2 = ParameterDecoder::get(dc, lamb);
+    TEST((std::is_same<tuple_element<0, decltype(t2)>::type, std::string>::value));
+
+    auto t3 = ParameterDecoder::get(dc, my_functor());
+    TEST((std::is_same<tuple_element<0, decltype(t3)>::type, double>::value));
+
     return 0;
 }

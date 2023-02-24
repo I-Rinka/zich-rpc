@@ -12,6 +12,7 @@ struct function_traits<F (*)(Args...)>
     using return_type = F;
     template <size_t N>
     using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
+    using args_tuple = std::tuple<Args...>;
 };
 
 // Function pointer specialization
@@ -22,6 +23,7 @@ struct function_traits<F(Args...)>
     using return_type = F;
     template <size_t N>
     using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
+    using args_tuple = std::tuple<Args...>;
 };
 
 // Functor const specialization
@@ -32,6 +34,7 @@ struct function_traits<F (Class::*)(Args...) const>
     using return_type = F;
     template <size_t N>
     using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
+    using args_tuple = std::tuple<Args...>;
 };
 
 // Lambda specialization
@@ -48,10 +51,5 @@ struct function_traits<F (Class::*)(Args...)>
     using return_type = F;
     template <size_t N>
     using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
+    using args_tuple = std::tuple<Args...>;
 };
-
-// template <typename F>
-// struct function_arguments_to_tuple
-// {
-//     static
-// };

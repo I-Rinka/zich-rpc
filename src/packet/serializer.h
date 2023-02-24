@@ -78,8 +78,8 @@ struct __decoder<std::string>
 template <size_t N>
 struct __decoder_helper
 {
-    template <typename F, typename... Args, typename... ArgT>
-    static auto call(Decoder &Dc, F func, Args... args) -> std::tuple<ArgT...>
+    template <typename F, typename... Args>
+    static auto call(Decoder &Dc, F func, Args... args) -> typename function_traits<F>::args_tuple
     {
         using nth_type = typename function_traits<F>::template nth_type<N - 1>;
         return __decoder_helper<N - 1>::call(Dc, func, args..., __decoder<nth_type>::decode(Dc));
@@ -90,16 +90,17 @@ template <>
 struct __decoder_helper<0>
 {
     template <typename F, typename... Args>
-    static auto call(Decoder &Dc, F func, Args... args) -> std::tuple<Args...>
+    static auto call(Decoder &Dc, F func, Args... args) -> typename function_traits<F>::args_tuple
     {
+
         return std::make_tuple(args...);
     }
 };
 
 struct ParameterDecoder
 {
-    template <typename F, typename... ArgT>
-    static auto call(Decoder &Dc, F function) -> std::tuple<ArgT...>
+    template <typename F>
+    static auto get(Decoder &Dc, F function) -> typename function_traits<F>::args_tuple
     {
         return __decoder_helper<function_traits<F>::arity>::call(Dc, function);
     }
