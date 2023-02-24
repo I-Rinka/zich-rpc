@@ -28,3 +28,17 @@ string GetRandomString(int max_len = 15)
     }
     return ans;
 }
+
+string GetRandomString_fx(int len = 15)
+{
+    string ans;
+    random_device rd;
+    mt19937_64 seed(rd());
+    uniform_int_distribution<> strc('a', 'z');
+
+    for (int i = 0; i < len; i++)
+    {
+        ans.push_back(strc(seed));
+    }
+    return ans;
+}

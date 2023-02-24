@@ -8,7 +8,8 @@
 using namespace std;
 
 #define TEST_SCALE 10
-#define PACK_SIZE 1000
+#define PACK_SIZE 1000 
+static const uint16_t PORT = 5000;
 
 vector<string> test_v;
 
@@ -22,9 +23,10 @@ void process_request(ServerSocket &ss)
         auto rcv = client.recv();
         client.send(rcv);
     }
+    auto rcv = client.recv(); // There should be a last recv for get close from client
+    std::cout << "client said good bye:" << rcv.size() << std::endl;
 }
 
-static const uint16_t PORT = 5005;
 
 void server_thread()
 {
@@ -32,6 +34,7 @@ void server_thread()
 
     ServerSocket ss(PORT);
     process_request(ss);
+    // this_thread::sleep_for(chrono::milliseconds(500));
 }
 
 void client_thread()
@@ -53,7 +56,6 @@ void client_thread()
             this_thread::sleep_for(chrono::milliseconds(300));
         }
     }
-    cs.close();
 }
 
 void generate_test_case()
