@@ -63,8 +63,8 @@ void generate_test_case()
 {
     for (int i = 0; i < TEST_SCALE; i++)
     {
-        test_v.push_back(GetRandomString_fx(PACK_SIZE));
-        // test_v.push_back(GetRandomString(PACK_SIZE));
+        // test_v.push_back(GetRandomString_fx(PACK_SIZE));
+        test_v.push_back(GetRandomString(PACK_SIZE));
     }
 }
 

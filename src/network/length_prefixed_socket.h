@@ -22,9 +22,6 @@ public:
     LengthPrefixedSocket(int &&sockfd)
     {
         _sockfd = sockfd;
-
-        _buffer = new char[DEFAULT_BUFFER_SIZE];
-        _buffer_size = DEFAULT_BUFFER_SIZE;
     }
 
     LengthPrefixedSocket()
@@ -34,9 +31,6 @@ public:
         {
             throw std::runtime_error("Error creating socket");
         }
-
-        _buffer = new char[DEFAULT_BUFFER_SIZE];
-        _buffer_size = DEFAULT_BUFFER_SIZE;
     }
 
     virtual size_t send(const std::string &data) override
@@ -89,6 +83,12 @@ public:
 
         //     return "";
         // }
+
+        if (_buffer == nullptr)
+        {
+            _buffer = new char[DEFAULT_BUFFER_SIZE];
+            _buffer_size = DEFAULT_BUFFER_SIZE;
+        }
 
         size_t bytes_received = 0;
         while (bytes_received < length)

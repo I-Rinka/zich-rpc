@@ -1,3 +1,7 @@
+epoll_server: test_epoll_server.cpp
+	g++ $^ -o test.out -std=c++11 -lpthread
+	./test.out
+
 length_prefixed_socket: test_length_prefixed_socket.cpp
 	g++ $^ -o test.out -std=c++11 -lpthread
 	./test.out

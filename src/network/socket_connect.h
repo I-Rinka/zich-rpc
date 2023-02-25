@@ -61,6 +61,9 @@ public:
     ClientSocket() : _socket(new CustomizedSocket()){};
     ClientSocket(std::string ip, uint16_t port) : _socket(new CustomizedSocket()) { connect(ip, port); };
 
+    //! \brief Create server socket from listen socket file descriptor
+    ClientSocket(int &&fd) : _socket(new CustomizedSocket(std::forward<int>(fd))){};
+
     //! \brief Connect to the target server
     bool connect(std::string ip, uint16_t port);
 
@@ -76,6 +79,9 @@ public:
 
     //! \brief This is close() semetics of socket
     virtual ~ClientSocket();
+
+    operator CustomizedSocket() const { return *_socket; };
+    operator int() const { return *_socket; }
 };
 
 template <typename CustomizedSocket = TCPSocket>
@@ -91,6 +97,9 @@ public:
     //! \brief Claim server socket without bind address
     //! \note If you call the default version, you need to call .bind(port) after that
     ServerSocket() : _socket(new CustomizedSocket()){};
+
+    //! \brief Create server socket from listen socket file descriptor
+    ServerSocket(int &&fd) : _socket(new CustomizedSocket(std::forward<int>(fd))){};
 
     //! \brief Claim server socket and bind address
     //! \param connection_volume is the maxium acceptable client
@@ -119,6 +128,9 @@ public:
     //! \brief Socket receive data stored in the string
     //! \return std::string that stores data
     virtual std::string recv(TCPSocket &client_socket) { return client_socket.recv(); };
+
+    operator CustomizedSocket() const { return *_socket; };
+    operator int() const { return *_socket; }
 };
 
 // ---------------------------------------Implementation----------------------------------------
@@ -134,9 +146,6 @@ TCPSocket::TCPSocket()
     {
         throw std::runtime_error("Error creating socket");
     }
-
-    _buffer = new char[DEFAULT_BUFFER_SIZE];
-    _buffer_size = DEFAULT_BUFFER_SIZE;
 };
 
 TCPSocket::TCPSocket(TCPSocket &&other)
@@ -154,9 +163,6 @@ TCPSocket::TCPSocket(TCPSocket &&other)
 TCPSocket::TCPSocket(int &&sockfd)
 {
     _sockfd = sockfd;
-
-    _buffer = new char[DEFAULT_BUFFER_SIZE];
-    _buffer_size = DEFAULT_BUFFER_SIZE;
 }
 
 TCPSocket::~TCPSocket()
@@ -193,6 +199,12 @@ std::string TCPSocket::recv()
     if (_sockfd == -1)
     {
         throw std::runtime_error("Socket is not created before receive");
+    }
+
+    if (_buffer == nullptr)
+    {
+        _buffer = new char[DEFAULT_BUFFER_SIZE];
+        _buffer_size = DEFAULT_BUFFER_SIZE;
     }
 
     int recved = ::recv(_sockfd, _buffer, _buffer_size - 1, 0);
