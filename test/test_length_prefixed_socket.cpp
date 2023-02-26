@@ -8,8 +8,8 @@
 
 using namespace std;
 
-#define TEST_SCALE 10
-#define PACK_SIZE ((1 << 16) - 1) // size 1024 makes TCP stream broken
+#define TEST_SCALE 10000
+#define PACK_SIZE ((1 << 16) - 1)
 static const uint16_t PORT = 5002;
 
 vector<string> test_v;

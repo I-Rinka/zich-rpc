@@ -4,8 +4,11 @@
 #include <sys/epoll.h>
 #include <array>
 #include <thread>
+#include <vector>
+#include <algorithm>
 
 #include "../src/network/socket_connect.h"
+#include "../src/network/length_prefixed_socket.h"
 using namespace std;
 
 constexpr uint16_t PORT = 5030;
@@ -21,6 +24,7 @@ void server_thread()
     event.events = EPOLLIN;
     epoll_ctl(epollfd, EPOLL_CTL_ADD, ss, &event);
 
+    TCPSocket client(-1);
     while (true)
     {
         std::array<epoll_event, MAX_EVENTS> events;
@@ -36,67 +40,83 @@ void server_thread()
         {
             if ((events[i].data.fd == ss) && (events[i].events & EPOLLIN))
             {
-                auto client = ss.accept();
+                client = ss.accept();
+
+                epoll_event event;
+                event.data.fd = client;
+                event.events = EPOLLIN;
+
                 epoll_ctl(epollfd, EPOLL_CTL_ADD, client, &event);
             }
             else if (events[i].events & EPOLLIN)
             {
+
                 auto temp_fd = events[i].data.fd;
-                TCPSocket client(std::move(temp_fd)); // The socket will close after that!
+                client = std::move(temp_fd);
 
                 try
                 {
                     auto data = client.recv();
+                    cout << data << endl;
                     if (data.size() == 0)
                     {
+                        epoll_event event;
+                        event.events = EPOLLIN;
+                        event.data.fd = client;
                         epoll_ctl(epollfd, EPOLL_CTL_DEL, client, &event);
                     }
                     else
                     {
                         client.send("Echo: " + data);
-                        // We need a mechanism to make client object not destruct
                     }
                 }
                 catch (const std::exception &e)
                 {
-                    std::cerr << e.what() << '\n';
+                    std::cerr << "server recv error" << endl;
                     epoll_ctl(epollfd, EPOLL_CTL_DEL, client, &event);
+                    client.close();
                 }
             }
         }
     }
+    close(epollfd);
 }
 
 void client_thread()
 {
     ClientSocket<> cs;
-    cs.connect("127.0.0.1", PORT);
+
+    if (cs.connect("127.0.0.1", PORT) == -1)
+    {
+        std::cout << "connect error" << endl;
+        // return client_thread();
+    }
 
     string msg;
 
-    cs.send("Hello!!!");
+    if (cs.send("Hello!!!") == 0)
+    {
+        cout << "sent error" << endl;
+    }
 
     try
     {
         auto recv = cs.recv();
         std::cout << recv << endl;
+        return client_thread();
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << '\n';
+        std::cerr << "client receive error" << endl;
+        // return client_thread();
     }
 
     // cs.close();
+    return;
 }
 
 int main(int argc, char const *argv[])
 {
-    thread t(server_thread);
-    // server_thread();
-
-    this_thread::sleep_for(chrono::milliseconds(100));
-    client_thread();
-
-    t.join();
+    server_thread();
     return 0;
 }

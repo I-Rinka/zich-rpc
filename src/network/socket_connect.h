@@ -18,7 +18,7 @@ protected:
     char *_buffer = nullptr;
     size_t _buffer_size = 0;
 
-    const static size_t DEFAULT_BUFFER_SIZE = 1024;
+    const static size_t DEFAULT_BUFFER_SIZE = 4000;
 
 public:
     std::string IP;
@@ -28,9 +28,12 @@ public:
 
     // Ownership stuff
     TCPSocket(TCPSocket &&other);
-    TCPSocket(int &&sockfd);
+    explicit TCPSocket(int &&sockfd);
     TCPSocket(const TCPSocket &) = delete;
     TCPSocket &operator=(const TCPSocket &) = delete;
+
+    TCPSocket &operator=(int &&);
+    TCPSocket &operator=(TCPSocket &&);
 
     //! \brief Socket send data in the string
     //! \return The number of byte that is sent. Which means it might not send all of the chars in the string
@@ -39,6 +42,9 @@ public:
     //! \brief Socket receive data stored in the string
     //! \return std::string that stores data
     virtual std::string recv();
+
+    //! \brief Close the socket but not free the buffer
+    virtual void close();
 
     virtual ~TCPSocket();
 
@@ -65,7 +71,7 @@ public:
     ClientSocket(int &&fd) : _socket(new CustomizedSocket(std::forward<int>(fd))){};
 
     //! \brief Connect to the target server
-    bool connect(std::string ip, uint16_t port);
+    bool connect(std::string ip, uint16_t port) noexcept;
 
     //! \brief Socket send data in the string
     //! \return The number of byte that is sent. Which means it might not send all of the chars in the string
@@ -80,8 +86,7 @@ public:
     //! \brief This is close() semetics of socket
     virtual ~ClientSocket();
 
-    operator CustomizedSocket() const { return *_socket; };
-    operator int() const { return *_socket; }
+    operator int() const { return (int)*_socket; }
 };
 
 template <typename CustomizedSocket = TCPSocket>
@@ -107,16 +112,21 @@ public:
 
     //! \brief Call it if you use the default constructor.
     //! \return Return false if bind fails
-    bool bind(uint16_t port);
+    bool bind(uint16_t port) noexcept;
 
     //! \brief Listen Sementics of socket
     //! \param connection_volume is the maxium acceptable client
     //! \return Return false if listen fails
-    bool listen(int connection_volume = 100);
+    bool listen(int connection_volume = 100) noexcept;
 
     //! \brief returns socket of connecting client
     //! \return TCPSocket of connecting client
     CustomizedSocket accept();
+
+    //! \brief returns socketfd of connecting client
+    //! \param client_addr_p please pass nullptr if you do not need the address
+    //! \return TCPSocket of connecting client
+    int accept(sockaddr_in *);
 
     //! \brief This is close() semetics of socket
     virtual ~ServerSocket();
@@ -129,8 +139,7 @@ public:
     //! \return std::string that stores data
     virtual std::string recv(TCPSocket &client_socket) { return client_socket.recv(); };
 
-    operator CustomizedSocket() const { return *_socket; };
-    operator int() const { return *_socket; }
+    operator int() const { return (int)*_socket; }
 };
 
 // ---------------------------------------Implementation----------------------------------------
@@ -167,16 +176,51 @@ TCPSocket::TCPSocket(int &&sockfd)
 
 TCPSocket::~TCPSocket()
 {
-    if (_sockfd != -1)
-    {
-        ::close(_sockfd);
-        // std::cout << "IP:" << IP << ", port:" << port << " closed" << std::endl;
-    }
+    this->close();
 
     if (_buffer != nullptr)
     {
         delete _buffer;
     }
+};
+
+void TCPSocket::close()
+{
+    if (_sockfd != -1)
+    {
+        ::close(_sockfd);
+        _sockfd = -1;
+    }
+}
+
+TCPSocket &TCPSocket::operator=(int &&sockfd)
+{
+    _sockfd = sockfd;
+    return *this;
+}
+
+TCPSocket &TCPSocket::operator=(TCPSocket &&other)
+{
+    _sockfd = other._sockfd;
+    other._sockfd = -1;
+
+    if (other._buffer != nullptr)
+    {
+        if (_buffer == nullptr)
+        {
+            _buffer = other._buffer;
+            _buffer_size = other._buffer_size;
+            other._buffer = nullptr;
+            other._buffer_size = 0;
+        }
+        else // This already has buffer
+        {
+            delete other._buffer;
+            other._buffer_size = 0;
+        }
+    }
+
+    return *this;
 };
 
 size_t TCPSocket::send(const std::string &data)
@@ -207,11 +251,21 @@ std::string TCPSocket::recv()
         _buffer_size = DEFAULT_BUFFER_SIZE;
     }
 
+    if (_buffer == nullptr)
+    {
+        throw std::runtime_error("Memory allocation failed");
+    }
+
     int recved = ::recv(_sockfd, _buffer, _buffer_size - 1, 0);
     if (recved == -1)
     {
         throw std::runtime_error("Packet recv error");
     }
+    else if (recved == 0)
+    {
+        this->close();
+    }
+
     _buffer[recved] = 0;
 
     return std::string(_buffer);
@@ -234,7 +288,7 @@ ServerSocket<CustomizedSocket>::ServerSocket(uint16_t port, int connection_volum
 }
 
 template <typename CustomizedSocket>
-bool ServerSocket<CustomizedSocket>::bind(uint16_t port)
+bool ServerSocket<CustomizedSocket>::bind(uint16_t port) noexcept
 {
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
@@ -251,9 +305,22 @@ bool ServerSocket<CustomizedSocket>::bind(uint16_t port)
 }
 
 template <typename CustomizedSocket>
-bool ServerSocket<CustomizedSocket>::listen(int connection_volume)
+bool ServerSocket<CustomizedSocket>::listen(int connection_volume) noexcept
 {
     return ::listen(*_socket, connection_volume) == 0;
+}
+
+template <typename CustomizedSocket>
+int ServerSocket<CustomizedSocket>::accept(sockaddr_in *client_addr_p)
+{
+    int socklen = sizeof(sockaddr_in);
+    struct sockaddr_in client_addr;
+
+    if (client_addr_p == nullptr)
+    {
+        return ::accept(*_socket, (struct sockaddr *)&client_addr, (socklen_t *)&socklen);
+    }
+    return ::accept(*_socket, (struct sockaddr *)client_addr_p, (socklen_t *)client_addr_p);
 }
 
 template <typename CustomizedSocket>
@@ -262,7 +329,7 @@ CustomizedSocket ServerSocket<CustomizedSocket>::accept()
     int socklen = sizeof(sockaddr_in);
     struct sockaddr_in client_addr;
 
-    CustomizedSocket sock = ::accept(*_socket, (struct sockaddr *)&client_addr, (socklen_t *)&socklen);
+    CustomizedSocket sock(::accept(*_socket, (struct sockaddr *)&client_addr, (socklen_t *)&socklen));
 
     sock.port = client_addr.sin_port;
 
@@ -289,7 +356,7 @@ inline ServerSocket<CustomizedSocket>::~ServerSocket()
  * @brief Client Socket Class Implementation
  */
 template <typename CustomizedSocket>
-bool ClientSocket<CustomizedSocket>::connect(std::string ip, uint16_t port)
+bool ClientSocket<CustomizedSocket>::connect(std::string ip, uint16_t port) noexcept
 {
     _socket->IP = ip;
     _socket->port = port;
@@ -302,10 +369,13 @@ bool ClientSocket<CustomizedSocket>::connect(std::string ip, uint16_t port)
     }
 
     sockaddr_in server_addr;
-    memset(&server_addr, 0, sizeof(server_addr));
+    // memset(&server_addr, 0, sizeof(server_addr));
+    // server_addr.sin_family = AF_INET;
+    // server_addr.sin_port = htons(port);
+    // memcpy(&server_addr.sin_addr, h->h_addr, h->h_length);
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
-    memcpy(&server_addr.sin_addr, h->h_addr, h->h_length);
+    inet_pton(AF_INET, ip.c_str(), &server_addr.sin_addr);
 
     int ret = ::connect(*_socket, (sockaddr *)(&server_addr), sizeof(server_addr));
     return ret == 0;
@@ -314,8 +384,7 @@ bool ClientSocket<CustomizedSocket>::connect(std::string ip, uint16_t port)
 template <typename CustomizedSocket>
 void ClientSocket<CustomizedSocket>::close()
 {
-    delete this->_socket;
-    this->_socket = nullptr;
+    this->_socket->close();
 }
 
 template <typename CustomizedSocket>

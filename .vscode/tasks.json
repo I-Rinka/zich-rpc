@@ -12,7 +12,8 @@
                 "${file}",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}.out",
-                "-std=c++11"
+                "-std=c++11",
+                "-pthread"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -32,7 +33,9 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}.out"
+                "${fileDirname}/${fileBasenameNoExtension}.out",
+                "-std=c++11",
+                "-pthread"
             ],
             "options": {
                 "cwd": "${fileDirname}"
