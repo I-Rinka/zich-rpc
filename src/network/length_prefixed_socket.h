@@ -7,6 +7,38 @@ protected:
     const static size_t DEFAULT_BUFFER_SIZE = 1 << 16;
 
 public:
+    LengthPrefixedSocket &operator=(int &&sockfd)
+    {
+        _sockfd = sockfd;
+        return *this;
+    }
+    LengthPrefixedSocket &operator=(LengthPrefixedSocket &&other)
+    {
+        _sockfd = other._sockfd;
+        other._sockfd = -1;
+
+        IP = other.IP;
+        port = other.port;
+
+        if (other._buffer != nullptr)
+        {
+            if (_buffer == nullptr)
+            {
+                _buffer = other._buffer;
+                _buffer_size = other._buffer_size;
+                other._buffer = nullptr;
+                other._buffer_size = 0;
+            }
+            else // This already has buffer
+            {
+                delete other._buffer;
+                other._buffer_size = 0;
+            }
+        }
+
+        return *this;
+    }
+
     LengthPrefixedSocket(LengthPrefixedSocket &&other)
     {
         _sockfd = other._sockfd;
@@ -72,7 +104,7 @@ public:
         int recved = 0;
         if ((recved = ::recv(TCPSocket::_sockfd, &length, sizeof(length), 0)) == -1)
         {
-            throw std::runtime_error("Prefixed recv error");
+            throw std::runtime_error("Prefixed length recv error");
         }
 
         // std::cout << "packet length:" << length << std::endl;
@@ -96,7 +128,7 @@ public:
             ssize_t n = ::recv(TCPSocket::_sockfd, _buffer + bytes_received, length - bytes_received, 0);
             if (n == -1)
             {
-                throw std::runtime_error("Prefixed recv error");
+                throw std::runtime_error("data recv error");
             }
             bytes_received += n;
         }

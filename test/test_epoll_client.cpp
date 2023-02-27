@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <map>
 #include "TEST_SUIT.h"
 
 #include "../src/network/socket_connect.h"
@@ -15,22 +16,26 @@
 using namespace std;
 
 constexpr uint16_t PORT = 5030;
-constexpr size_t MAX_THREADS = 200;
+constexpr size_t MAX_THREADS = 1200;
 std::atomic<int> current_thread(0);
 
 void client_thread(int number)
 {
     current_thread++;
-    ClientSocket<> cs;
+    ClientSocket<LengthPrefixedSocket> cs;
     if (!cs.connect("127.0.0.1", PORT))
     {
         std::cout << "connect error" << endl;
         // return client_thread();
     }
+    struct sockaddr_in local;
+    socklen_t len = sizeof(local);
+    getsockname(cs, (struct sockaddr *)&local, &len);
+    // cout << "connected: " << ntohs(local.sin_port) << endl;
 
     // std::cout << number << ":" << current_thread << endl;
 
-    if (cs.send(to_string(number) + GetRandomString(100)) == 0)
+    if (cs.send(to_string(number) + GetRandomString_fx(5000)) == 0)
     {
         cout << "sent error" << endl;
     }
@@ -38,15 +43,18 @@ void client_thread(int number)
     try
     {
         auto recv = cs.recv();
-        cout << recv << endl;
+        // cout << recv << endl;
         // cout << number << endl;
         // std::cout << recv << endl;
         // return client_thread();
+        cout << "success: " << ntohs(local.sin_port) << endl;
     }
     catch (const std::exception &e)
     {
-        std::cerr << "client receive error," << number << ":" << current_thread << endl;
+        return client_thread(number);
+        std::cerr << "client receive error," << e.what() << number << ":";
         // return client_thread();
+        cout << ntohs(local.sin_port) << endl;
     }
 
     // cs.close();

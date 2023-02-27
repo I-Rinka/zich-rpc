@@ -28,7 +28,7 @@ public:
     virtual bool DecodeNextBool() = 0;
 
     //! \brief Get the next value, which should be int, of the upcoming string
-    virtual int DecodeNextInt() = 0;
+    virtual long long DecodeNextInt() = 0;
 
     //! \brief Get the next value, which should be double, of the upcoming string
     virtual double DecodeNextDouble() = 0;
@@ -85,6 +85,11 @@ struct __decoder_helper
     static auto call(Decoder &Dc, F func, Args... args) -> typename function_traits<F>::args_tuple
     {
         using nth_type = typename function_traits<F>::template nth_type<N - 1>;
+        if (Dc.ReachEnd())
+        {
+            throw std::runtime_error("Packet Integrity is not satisfied: parameters not enough");
+        }
+
         return __decoder_helper<N - 1>::call(Dc, func, args..., __decoder<nth_type>::decode(Dc));
     }
 };

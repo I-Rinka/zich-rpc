@@ -6,17 +6,18 @@
 #include <thread>
 #include <vector>
 #include <algorithm>
+#include <map>
 
 #include "../src/network/socket_connect.h"
 #include "../src/network/length_prefixed_socket.h"
 using namespace std;
 
 constexpr uint16_t PORT = 5030;
-constexpr size_t MAX_EVENTS = 1000;
+constexpr size_t MAX_EVENTS = 2000;
 
 void server_thread()
 {
-    ServerSocket<> ss(PORT, 100);
+    ServerSocket<LengthPrefixedSocket> ss(PORT, 100);
 
     int epollfd = epoll_create(1);
     epoll_event event;
@@ -24,7 +25,9 @@ void server_thread()
     event.events = EPOLLIN;
     epoll_ctl(epollfd, EPOLL_CTL_ADD, ss, &event);
 
-    TCPSocket client(-1);
+    map<int, uint16_t> fd_port;
+
+    LengthPrefixedSocket client(-1);
     while (true)
     {
         std::array<epoll_event, MAX_EVENTS> events;
@@ -42,6 +45,8 @@ void server_thread()
             {
                 client = ss.accept();
 
+                fd_port[client] = client.port;
+
                 epoll_event event;
                 event.data.fd = client;
                 event.events = EPOLLIN;
@@ -57,9 +62,14 @@ void server_thread()
                 try
                 {
                     auto data = client.recv();
-                    cout << data << endl;
+                    // cout << data << endl;
                     if (data.size() == 0)
                     {
+                        struct sockaddr_in local;
+                        socklen_t len = sizeof(local);
+                        getsockname(client, (struct sockaddr *)&local, &len);
+                        cout << fd_port[client] << " closed" << endl;
+
                         epoll_event event;
                         event.events = EPOLLIN;
                         event.data.fd = client;

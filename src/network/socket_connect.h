@@ -331,7 +331,7 @@ CustomizedSocket ServerSocket<CustomizedSocket>::accept()
 
     CustomizedSocket sock(::accept(*_socket, (struct sockaddr *)&client_addr, (socklen_t *)&socklen));
 
-    sock.port = client_addr.sin_port;
+    sock.port = ntohs(client_addr.sin_port);
 
     char client_ip[INET_ADDRSTRLEN];
 

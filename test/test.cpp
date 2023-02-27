@@ -2,7 +2,8 @@
 #include <string>
 #include <type_traits>
 
-struct Decoder {
+struct Decoder
+{
     bool DecodeNextBool() { return true; }
     double DecodeNextDouble() { return 3.14; }
     int DecodeNextInt() { return 42; }
@@ -56,6 +57,15 @@ struct __decoder<int>
 };
 
 template <>
+struct __decoder<long long>
+{
+    static int decode(Decoder &Dc)
+    {
+        return Dc.DecodeNextInt();
+    }
+};
+
+template <>
 struct __decoder<std::string>
 {
     static std::string decode(Decoder &Dc)
@@ -94,7 +104,8 @@ struct ParameterDecoder
     }
 };
 
-int main() {
+int main()
+{
     Decoder dc;
     auto tup = ParameterDecoder::call<decltype(std::make_tuple<int, double, std::string>), int, double, std::string>(dc, std::make_tuple<int, double, std::string>);
     return 0;
