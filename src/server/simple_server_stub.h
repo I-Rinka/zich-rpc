@@ -172,10 +172,10 @@ public:
     {
         _func_map[function_name] = [](LengthPrefixedSocket &client_socket, SDecoder &decoder)
         {
-            auto tuple = ParameterDecoder::get(decoder, callable);
+            auto tuple = ParameterDecode(decoder, callable);
 
             // call tuple
-            function_traits<Function>::return_type ans = CallTuple(callable, tuple);
+            typename function_traits<Function>::return_type ans = CallTuple(callable, tuple);
 
             // serialize ans
 

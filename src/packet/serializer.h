@@ -39,6 +39,21 @@ public:
     // Todo decode object / array
 };
 
+class Encoder
+{
+public:
+    virtual void EncodeBool(bool b) = 0;
+
+    virtual void EncodeInt(long long i) = 0;
+
+    virtual void EncodeDouble(double d) = 0;
+
+    virtual void EncodeString(std::string &str) = 0;
+
+    //! \brief Finally get the result
+    virtual std::string GetResult() = 0;
+};
+
 template <typename T>
 struct __decoder;
 
@@ -57,6 +72,15 @@ struct __decoder<double>
     static double decode(Decoder &Dc)
     {
         return Dc.DecodeNextDouble();
+    }
+};
+
+template <>
+struct __decoder<long long>
+{
+    static long long decode(Decoder &Dc)
+    {
+        return Dc.DecodeNextInt();
     }
 };
 
@@ -105,12 +129,84 @@ struct __decoder_helper<0>
     }
 };
 
-struct ParameterDecoder
+template <typename F>
+static auto ParameterDecode(Decoder &Dc, F function) -> typename function_traits<F>::args_tuple
 {
-    template <typename F>
-    static auto get(Decoder &Dc, F function) -> typename function_traits<F>::args_tuple
+    return __decoder_helper<function_traits<F>::arity>::call(Dc, function);
+}
+
+template <typename T>
+struct __encoder;
+
+template <>
+struct __encoder<bool>
+{
+    static void encode(Encoder &Ec, bool v)
     {
-        return __decoder_helper<function_traits<F>::arity>::call(Dc, function);
+        Ec.EncodeBool(v);
     }
 };
+
+template <>
+struct __encoder<double>
+{
+    static void encode(Encoder &Ec, double v)
+    {
+        Ec.EncodeDouble(v);
+    }
+};
+
+template <>
+struct __encoder<int>
+{
+    static void encode(Encoder &Ec, int v)
+    {
+        Ec.EncodeInt(v);
+    }
+};
+
+template <>
+struct __encoder<long long>
+{
+    static void encode(Encoder &Ec, long long v)
+    {
+        Ec.EncodeInt(v);
+    }
+};
+
+template <>
+struct __encoder<std::string>
+{
+    static void encode(Encoder &Ec, std::string &str)
+    {
+        Ec.EncodeString(str);
+    }
+};
+
+template <size_t N>
+struct __encoder_helper
+{
+    template <typename T, typename... Args>
+    static std::string call(Encoder &Ec, T v, Args... args)
+    {
+        __encoder<T>::encode(Ec, v);
+        return __encoder_helper<N - 1>::call(Encoder & Ec, args...);
+    }
+};
+
+template <>
+struct __encoder_helper<0>
+{
+    static std::string call(Encoder &Ec)
+    {
+        return Ec.GetResult();
+    }
+};
+
+template <typename... Args>
+std::string EncodeParameters(Encoder &Ec, Args... args)
+{
+    return __encoder_helper<sizeof...(args)>::call(Ec, args...);
+}
+
 #endif
