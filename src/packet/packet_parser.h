@@ -260,7 +260,10 @@ public:
 
     std::string GetResult()
     {
-        return std::string("size:") + std::to_string(_arity) + "\n" + _result + "\n";
+        auto ans = std::string("size:") + std::to_string(_arity) + "\n" + _result + "\n";
+        _result.clear();
+        _arity = 0;
+        return ans;
     }
 };
 

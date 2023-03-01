@@ -172,7 +172,7 @@ public:
     {
         _func_map[function_name] = [](LengthPrefixedSocket &client_socket, SDecoder &decoder)
         {
-            auto tuple = ParameterDecode(decoder, callable);
+            auto tuple = DecodeParameters(decoder, callable);
 
             // call tuple
             typename function_traits<Function>::return_type ans = CallTuple(callable, tuple);

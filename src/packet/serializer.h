@@ -130,7 +130,7 @@ struct __decoder_helper<0>
 };
 
 template <typename F>
-static auto ParameterDecode(Decoder &Dc, F function) -> typename function_traits<F>::args_tuple
+static auto DecodeParameters(Decoder &Dc, F function) -> typename function_traits<F>::args_tuple
 {
     return __decoder_helper<function_traits<F>::arity>::call(Dc, function);
 }
