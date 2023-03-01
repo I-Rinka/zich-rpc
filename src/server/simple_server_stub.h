@@ -106,7 +106,6 @@ private:
     ServerSocket<LengthPrefixedSocket> *_ss;
     std::map<std::string, std::function<void(LengthPrefixedSocket &, SDecoder &)>> _func_map;
 
-public:
     void ProcessSocket(LengthPrefixedSocket &client_socket)
     {
         try
@@ -154,10 +153,8 @@ public:
         this->ServerThread();
     }
 
-    SServerStub(uint16_t port) : _ss(new ServerSocket<LengthPrefixedSocket>(port))
-    {
-        ServerThread();
-    };
+public:
+    SServerStub(uint16_t port) : _ss(new ServerSocket<LengthPrefixedSocket>(port)){};
 
     ~SServerStub()
     {
@@ -170,17 +167,34 @@ public:
     template <typename Key, typename Function>
     void bind(Key function_name, Function callable)
     {
-        _func_map[function_name] = [](LengthPrefixedSocket &client_socket, SDecoder &decoder)
+        std::string key = GetStrRep(function_name);
+        _func_map[key] = [&](LengthPrefixedSocket &client_socket, SDecoder &decoder)
         {
             auto tuple = DecodeParameters(decoder, callable);
 
+            if (std::is_same<typename function_traits<Function>::return_type, void>::value)
+            {
+                CallTuple(callable, tuple);
+            }
+            else
+            {
+                // Else if doesn't work for template
+                // typename  ans =
+                // static_assert();
+                // auto ans = CallTuple(callable, tuple);
+            }
+
             // call tuple
-            typename function_traits<Function>::return_type ans = CallTuple(callable, tuple);
 
             // serialize ans
 
             // send serialized ans
             client_socket.send("hello");
         };
+    }
+
+    void start()
+    {
+        ServerThread();
     }
 };

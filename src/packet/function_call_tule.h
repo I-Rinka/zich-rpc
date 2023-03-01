@@ -7,7 +7,7 @@ struct __call_helper
     template <typename Function, typename... Args>
     static auto call(Function F, typename function_traits<Function>::args_tuple tp, Args... args) -> typename function_traits<Function>::return_type
     {
-        return __call_helper<N - 1>::call(F, tp, args..., std::get<N - 1>(tp));
+        return __call_helper<N - 1>::call(F, tp, std::get<N - 1>(tp), args...);
     }
 };
 

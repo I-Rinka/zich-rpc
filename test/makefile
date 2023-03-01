@@ -1,3 +1,7 @@
+simple_stub: test_simple_stub.cpp
+	g++ $^ -o test.out -std=c++11
+	./test.out
+
 epoll_client: test_epoll_client.cpp
 	g++ $^ -o client.out -std=c++11 -lpthread
 	./client.out

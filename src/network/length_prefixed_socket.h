@@ -1,6 +1,8 @@
 #include "./socket_connect.h"
 #include <limits>
 
+#ifndef __Length_Prefixed_Socket_H__
+#define __Length_Prefixed_Socket_H__
 class LengthPrefixedSocket : public TCPSocket
 {
 protected:
@@ -137,3 +139,4 @@ public:
         return std::string(_buffer);
     }
 };
+#endif

@@ -8,7 +8,8 @@ using namespace std;
 //     pear,
 //     orange
 // };
-
+#ifndef __Get_Str_Rep_H__
+#define __Get_Str_Rep_H__
 template <typename T, bool is_enum>
 struct __get_str
 {
@@ -52,3 +53,4 @@ string GetStrRep<char>(char c)
     ans.push_back(c);
     return ans;
 }
+#endif

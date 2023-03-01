@@ -114,7 +114,7 @@ struct __decoder_helper
             throw std::runtime_error("Packet Integrity is not satisfied: parameters not enough");
         }
 
-        return __decoder_helper<N - 1>::call(Dc, func, args..., __decoder<nth_type>::decode(Dc));
+        return __decoder_helper<N - 1>::call(Dc, func, __decoder<nth_type>::decode(Dc), args...);
     }
 };
 
@@ -130,7 +130,7 @@ struct __decoder_helper<0>
 };
 
 template <typename F>
-static auto DecodeParameters(Decoder &Dc, F function) -> typename function_traits<F>::args_tuple
+auto DecodeParameters(Decoder &Dc, F function) -> typename function_traits<F>::args_tuple
 {
     return __decoder_helper<function_traits<F>::arity>::call(Dc, function);
 }
@@ -190,7 +190,7 @@ struct __encoder_helper
     static std::string call(Encoder &Ec, T v, Args... args)
     {
         __encoder<T>::encode(Ec, v);
-        return __encoder_helper<N - 1>::call(Encoder & Ec, args...);
+        return __encoder_helper<N - 1>::call(Ec, args...);
     }
 };
 

@@ -2,6 +2,7 @@
 #include "../network/length_prefixed_socket.h"
 #include "../packet/serializer.h"
 #include "../packet/packet_parser.h"
+#include "../packet/get_str_rep.h"
 #include <string>
 
 class SEncoder : public Encoder
@@ -57,21 +58,14 @@ public:
     }
 
     // use as operation
-    template <typename... Args>
-    std::string call(std::string function_key, Args... args)
+    template <typename Key, typename... Args>
+    std::string call(Key function_key, Args... args)
     {
         SEncoder Ec;
-        std::string pkt = EncodeParameters(Ec, args...);
+        std::string pkt = EncodeParameters(Ec, GetStrRep(function_key), args...);
 
         _cs->send(pkt);
 
         return _cs->recv();
-    }
-
-    template <typename... Args>
-    std::string call(std::string IP, uint16_t port, std::string function_key, Args... args)
-    {
-        this->connect(IP, port);
-        return call(function_key, std::forward<Args>(args...));
     }
 };
