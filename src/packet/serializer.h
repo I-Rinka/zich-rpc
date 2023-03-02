@@ -1,6 +1,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <iostream>
 #include "function_traits.h"
 // #include <iostream>
 
@@ -80,6 +81,7 @@ struct __decoder<long long>
 {
     static long long decode(Decoder &Dc)
     {
+        std::cout << "decode long long" << std::endl;
         return Dc.DecodeNextInt();
     }
 };
@@ -102,24 +104,24 @@ struct __decoder<std::string>
     }
 };
 
-template <size_t N>
+template <size_t N, size_t current>
 struct __decoder_helper
 {
     template <typename F, typename... Args>
     static auto call(Decoder &Dc, F func, Args... args) -> typename function_traits<F>::args_tuple
     {
-        using nth_type = typename function_traits<F>::template nth_type<N - 1>;
+        using nth_type = typename function_traits<F>::template nth_type<current>;
         if (Dc.ReachEnd())
         {
             throw std::runtime_error("Packet Integrity is not satisfied: parameters not enough");
         }
 
-        return __decoder_helper<N - 1>::call(Dc, func, __decoder<nth_type>::decode(Dc), args...);
+        return __decoder_helper<N, current + 1>::call(Dc, func, args..., __decoder<nth_type>::decode(Dc));
     }
 };
 
-template <>
-struct __decoder_helper<0>
+template <size_t N>
+struct __decoder_helper<N, N>
 {
     template <typename F, typename... Args>
     static auto call(Decoder &Dc, F func, Args... args) -> typename function_traits<F>::args_tuple
@@ -132,7 +134,7 @@ struct __decoder_helper<0>
 template <typename F>
 auto DecodeParameters(Decoder &Dc, F function) -> typename function_traits<F>::args_tuple
 {
-    return __decoder_helper<function_traits<F>::arity>::call(Dc, function);
+    return __decoder_helper<function_traits<F>::arity, 0>::call(Dc, function);
 }
 
 template <typename T>

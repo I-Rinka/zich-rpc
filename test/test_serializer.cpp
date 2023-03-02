@@ -7,7 +7,7 @@ class MyDecoder : public Decoder
 {
 public:
     MyDecoder() = default;
-    virtual int DecodeNextInt() override
+    virtual long long DecodeNextInt() override
     {
         return 1;
     }

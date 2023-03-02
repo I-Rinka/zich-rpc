@@ -18,7 +18,7 @@ void server_thread()
 {
     SServerStub ss(PORT);
 
-    ss.bind(funcs::func1, [=](int a, std::string b)
+    ss.bind(funcs::func1, [](int a, std::string b)
             { std::cout << "a is:" << a << endl; 
             std::cout << "b is:" << b << endl; });
 
@@ -31,7 +31,7 @@ void client_thread(int num)
     cs.connect("127.0.0.1", PORT);
     for (int i = 0; i < 3; i++)
     {
-        cs.call(funcs::func1, num, std::string("Hello world!"));
+        cs.call(funcs::func1, num + i, std::string("Hello world!"));
     }
 }
 

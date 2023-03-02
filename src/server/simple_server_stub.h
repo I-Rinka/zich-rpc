@@ -33,6 +33,7 @@ public:
     {
         _current_str = std::move(packet);
         _current_elements = ParsePack(_current_str);
+
         std::reverse(_current_elements.begin(), _current_elements.end());
         _para_number = _current_elements.size();
     }
@@ -91,12 +92,21 @@ public:
         Element t = _current_elements.back();
         _current_elements.pop_back();
 
-        if (t.type != ElementType::INT)
+        if (t.type != ElementType::STRING)
         {
-            throw std::runtime_error("Decode i64 Error");
+            throw std::runtime_error("Decode string Error");
         }
 
         return t.data_str;
+    }
+
+    void PrintCurrent()
+    {
+        std::cout << "-----Current-----" << endl;
+        for (auto i : _current_elements)
+        {
+            std::cout << i;
+        }
     }
 };
 
@@ -110,7 +120,8 @@ private:
     {
         try
         {
-            SDecoder decoder(client_socket.recv());
+            std::string recv_str = client_socket.recv();
+            SDecoder decoder(std::move(recv_str));
             try
             {
                 string func_key = decoder.DecodeNextString();
