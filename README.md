@@ -1,4 +1,4 @@
-# ZilCh RPC.
+# ZiCh RPC.
 
 ZilCh RPC. A highly scalable concise RPC lib
 
