@@ -48,3 +48,4 @@ cout << cs.call(RPCs::divide, 10, 3.14).as<double>() << endl; // call a function
 - [ ] 线程池化
 - [ ] 增加server端错误处理
 - [ ] Linux 单独设置epoll编译选项
+- [ ] Clear / Close 选项，当调用失败时

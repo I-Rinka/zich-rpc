@@ -3,56 +3,36 @@
 #include <type_traits>
 #include <iostream>
 #include "../src/util/print_tuple.h"
+#include "../src/util/function_traits.h"
+#include "../src/server/function_call_tule.h"
 using namespace std;
 
-template <typename>
-struct is_tuple : std::false_type
+template <typename F, typename... Args>
+auto call(F func, Args... args) -> typename function_traits<F>::return_type
 {
-};
+    return func(args...);
+}
 
-template <typename... T>
-struct is_tuple<std::tuple<T...>> : std::true_type
+bool func_pointer(int a, long long b, double c)
 {
-};
-
-template <bool use_tuple>
-struct tuple_helper
-{
-    static void call()
-    {
-        cout << "Other" << endl;
-    }
-};
-
-template <>
-struct tuple_helper<true>
-{
-    static void call()
-    {
-        cout << "tuple" << endl;
-    }
-};
-
-template <typename T>
-void as()
-{
-    tuple_helper<is_tuple<T>::value>::call();
-};
-
-class MyClass
-{
-private:
-    /* data */
-public:
-};
+    cout << a << endl;
+    cout << b << endl;
+    cout << c << endl;
+    return true;
+}
 
 int main()
 {
-    auto tp = make_tuple(3.14, std::string("hello"));
-    auto pr = make_pair(std::string("1"), 2);
+    // cout << call([](int a, double b)
+    //              {
+    //     std::cout << a << endl;
+    //     cout << b << endl;
+    //     return true; },
+    //              1, 3.14);
 
-    as<decltype(tp)>();
-    as<decltype(pr)>();
+    // cout << call(&func_pointer, 10);
+    cout << call(func_pointer, 10, 2323, 3.14);
+    cout << CallTuple(func_pointer, make_tuple(10, 2323, 3.14));
 
     return 0;
 }

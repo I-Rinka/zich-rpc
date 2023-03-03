@@ -133,7 +133,7 @@ public:
     void bind(Key function_name, Function callable)
     {
         std::string key = GetStrRep(function_name);
-        _func_map[key] = [&](LengthPrefixedSocket &client_socket, SDecoder &decoder)
+        _func_map[key] = [=](LengthPrefixedSocket &client_socket, SDecoder &decoder)
         {
             __func_return_helper<typename function_traits<Function>::return_type>::call(callable, decoder, client_socket);
         };
