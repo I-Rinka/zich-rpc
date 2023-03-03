@@ -14,7 +14,7 @@ int main(int argc, char const *argv[])
 
     // call function divide, get return value as double
     cout << "Call divde 10 / 3.14 = ";
-    cout << cs.call(RPCs::divide, 10.0, 3.14).as<double>() << endl; // Cpp has deduction problem. 10.0 must be 10.0 instead of 10. Otherwize it will become int
+    cout << cs.call(RPCs::divide, 10, 3.14).as<double>() << endl; // Cpp has deduction problem. 10.0 must be 10.0 instead of 10. Otherwize it will become int
 
     for (int i = 0; i < 10; i++)
     {

@@ -269,12 +269,10 @@ public:
     }
 };
 
-
 /**
  * For export potocol decoder and encoder
- * 
-*/
-
+ *
+ */
 
 class SDecoder : public Decoder
 {
@@ -330,6 +328,11 @@ public:
 
         if (t.type != ElementType::FLOAT)
         {
+            if (t.type == ElementType::INT)
+            {
+                return (double)t.int_val;
+            }
+
             throw std::runtime_error("Decode f64 Error");
         }
 
