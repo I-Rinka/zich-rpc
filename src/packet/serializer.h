@@ -25,6 +25,9 @@ public:
     //! \param para_number the number of paramters of the binded function.
     virtual bool ElementNumberEqual(size_t para_number) = 0;
 
+    //! \brief Add a new string, replace the old one for decode initialization
+    virtual void AddString(std::string &&str) = 0;
+
     //! \brief Get the next value, which should be bool, of the upcoming string
     virtual bool DecodeNextBool() = 0;
 
@@ -81,7 +84,6 @@ struct __decoder<long long>
 {
     static long long decode(Decoder &Dc)
     {
-        std::cout << "decode long long" << std::endl;
         return Dc.DecodeNextInt();
     }
 };
@@ -104,38 +106,37 @@ struct __decoder<std::string>
     }
 };
 
-template <size_t N, size_t current>
-struct __decoder_helper
-{
-    template <typename F, typename... Args>
-    static auto call(Decoder &Dc, F func, Args... args) -> typename function_traits<F>::args_tuple
-    {
-        using nth_type = typename function_traits<F>::template nth_type<current>;
-        if (Dc.ReachEnd())
-        {
-            throw std::runtime_error("Packet Integrity is not satisfied: parameters not enough");
-        }
+// template <size_t N, size_t current>
+// struct __decoder_helper
+// {
+//     template <typename T, typename... Args>
+//     static auto call(Decoder &Dc, T arg, Args... args) -> std::tuple<T, Args...>
+//     {
+//         if (Dc.ReachEnd())
+//         {
+//             throw std::runtime_error("Packet Integrity is not satisfied: parameters not enough");
+//         }
 
-        return __decoder_helper<N, current + 1>::call(Dc, func, args..., __decoder<nth_type>::decode(Dc));
-    }
-};
+//         return __decoder_helper<N, current + 1>::call(Dc, __decoder<T>::decode(Dc), args...);
+//     }
+// };
 
-template <size_t N>
-struct __decoder_helper<N, N>
-{
-    template <typename F, typename... Args>
-    static auto call(Decoder &Dc, F func, Args... args) -> typename function_traits<F>::args_tuple
-    {
+// template <size_t N>
+// struct __decoder_helper<N, N>
+// {
+//     template <typename F, typename... Args>
+//     static auto call(Decoder &Dc) -> typename function_traits<F>::args_tuple
+//     {
 
-        return std::make_tuple(args...);
-    }
-};
+//         return std::make_tuple(args...);
+//     }
+// };
 
-template <typename F>
-auto DecodeParameters(Decoder &Dc, F function) -> typename function_traits<F>::args_tuple
-{
-    return __decoder_helper<function_traits<F>::arity, 0>::call(Dc, function);
-}
+// template <typename F>
+// auto DecodeParameters(Decoder &Dc, F function) -> typename function_traits<F>::args_tuple
+// {
+//     return __decoder_helper<function_traits<F>::arity, 0>::call(Dc, function);
+// }
 
 template <typename T>
 struct __encoder;
@@ -209,6 +210,33 @@ template <typename... Args>
 std::string EncodeParameters(Encoder &Ec, Args... args)
 {
     return __encoder_helper<sizeof...(args)>::call(Ec, args...);
+}
+
+template <int current, int total, typename... Args>
+struct __encode_tuple_helper
+{
+    static std::string call(Encoder &Ec, std::tuple<Args...> &tp)
+    {
+        using nth_type = typename std::tuple_element<current, std::tuple<Args...>>::type;
+        __encoder<nth_type>::encode(Ec, std::get<current>(tp));
+        return __encode_tuple_helper<current + 1, total, Args...>::call(Ec, tp);
+    }
+};
+
+// end recursion
+template <int total, typename... Args>
+struct __encode_tuple_helper<total, total, Args...>
+{
+    static std::string call(Encoder &Ec, std::tuple<Args...> &tp)
+    {
+        return Ec.GetResult();
+    }
+};
+
+template <typename... Args>
+std::string EncodeTuple(Encoder &Ec, std::tuple<Args...> &tp)
+{
+    return __encode_tuple_helper<0, sizeof...(Args), Args...>::call(Ec, tp);
 }
 
 #endif

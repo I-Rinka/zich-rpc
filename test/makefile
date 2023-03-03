@@ -1,3 +1,7 @@
+netpacket_object: test_netpacket_object.cpp
+	g++ $^ -o test.out -std=c++14
+	./test.out
+
 simple_stub: test_simple_stub.cpp
 	g++ $^ -o test.out -std=c++11
 	./test.out
