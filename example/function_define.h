@@ -1,7 +1,7 @@
 #include <string>
 #include <tuple>
 
-constexpr uint16_t PORT = 7260;
+constexpr uint16_t PORT = 7261;
 
 enum class RPCs
 {

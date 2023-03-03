@@ -283,8 +283,15 @@ TCPSocket::operator int() const
 template <typename CustomizedSocket>
 ServerSocket<CustomizedSocket>::ServerSocket(uint16_t port, int connection_volume) : _socket(new CustomizedSocket())
 {
-    this->bind(port);
-    this->listen(connection_volume);
+    if (!this->bind(port))
+    {
+        throw std::runtime_error(std::string("Port ") + std::to_string(port) + std::string(" is already occupied!"));
+    }
+
+    if (!this->listen(connection_volume))
+    {
+        throw std::runtime_error(std::string("Listen ") + std::to_string(connection_volume) + std::string(" error"));
+    }
 }
 
 template <typename CustomizedSocket>

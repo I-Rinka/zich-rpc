@@ -81,7 +81,7 @@ private:
                 std::string func_key = decoder.DecodeNextString();
                 if (_func_map.find(func_key) == _func_map.end())
                 {
-                    std::cout << "No such function!" << std::endl;
+                    std::cerr << "Did not bind such a function! Target:" << client_socket.IP << ':' << client_socket.port << std::endl;
                     return;
                 }
 
@@ -91,12 +91,13 @@ private:
                 }
                 catch (const std::exception &e)
                 {
-                    std::cout << "Call function failed" << std::endl;
+                    std::cerr << "Call function failed! Target:" << client_socket.IP << ':' << client_socket.port << std::endl;
+                    return;
                 }
             }
             catch (const std::exception &e)
             {
-                std::cout << "No function key!" << std::endl;
+                std::cerr << "No function key! Target:" << client_socket.IP << ':' << client_socket.port << std::endl;
                 return;
             }
 
@@ -104,7 +105,7 @@ private:
         }
         catch (const std::exception &e)
         {
-            std::cout << "connection lost" << std::endl;
+            std::cerr << "Connection lost. Target:" << client_socket.IP << ':' << client_socket.port << std::endl;
             return;
         }
     }
@@ -114,6 +115,7 @@ private:
         auto client = _ss->accept();
 
         ProcessSocket(client);
+        client.close();
 
         this->ServerThread();
     }
