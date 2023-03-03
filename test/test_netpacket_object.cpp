@@ -22,9 +22,14 @@ int main(int argc, char const *argv[])
 
     print_tuple(cout, tp2) << endl;
 
-    auto tp3 = sp.decode(str).as(tp2);
+    auto tp3 = make_tuple(100000);
+    int i = sp.decode(sp.encode(tp3)).as<int>();
 
-    print_tuple(cout, tp3);
+    auto tp4 = make_tuple(3.1415926111111111);
+    auto d_str = sp.encode(tp4);
+    auto d = sp.decode(std::move(d_str)).as<double>();
+
+    cout << i << ", " << (double)d << endl;
 
     return 0;
 }

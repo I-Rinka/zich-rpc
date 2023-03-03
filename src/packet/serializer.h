@@ -2,7 +2,7 @@
 #include <tuple>
 #include <vector>
 #include <iostream>
-#include "function_traits.h"
+#include "../util/function_traits.h"
 // #include <iostream>
 
 #ifndef _Zichrpc_SERIALIZER_H_
@@ -106,37 +106,61 @@ struct __decoder<std::string>
     }
 };
 
-// template <size_t N, size_t current>
-// struct __decoder_helper
-// {
-//     template <typename T, typename... Args>
-//     static auto call(Decoder &Dc, T arg, Args... args) -> std::tuple<T, Args...>
-//     {
-//         if (Dc.ReachEnd())
-//         {
-//             throw std::runtime_error("Packet Integrity is not satisfied: parameters not enough");
-//         }
+template <int current, int total, typename Tuple>
+struct __decoder_helper_tuple
+{
+    template <typename... Argc>
+    static Tuple call(Decoder &Dc, Argc... args)
+    {
+        using nth_type = typename std::tuple_element<current, Tuple>::type;
+        return __decoder_helper_tuple<current + 1, total, Tuple>::call(Dc, args..., __decoder<nth_type>::decode(Dc));
+    }
+};
 
-//         return __decoder_helper<N, current + 1>::call(Dc, __decoder<T>::decode(Dc), args...);
-//     }
-// };
+template <int total, typename Tuple>
+struct __decoder_helper_tuple<total, total, Tuple>
+{
+    template <typename... Args>
+    static Tuple call(Decoder &Dc, Args... args)
+    {
+        return std::make_tuple(args...);
+    }
+};
 
-// template <size_t N>
-// struct __decoder_helper<N, N>
-// {
-//     template <typename F, typename... Args>
-//     static auto call(Decoder &Dc) -> typename function_traits<F>::args_tuple
-//     {
+template <typename>
+struct is_tuple : std::false_type
+{
+};
 
-//         return std::make_tuple(args...);
-//     }
-// };
+template <typename... T>
+struct is_tuple<std::tuple<T...>> : std::true_type
+{
+};
 
-// template <typename F>
-// auto DecodeParameters(Decoder &Dc, F function) -> typename function_traits<F>::args_tuple
-// {
-//     return __decoder_helper<function_traits<F>::arity, 0>::call(Dc, function);
-// }
+//! \brief Switch between single type and tuple
+template <bool is_tuple, typename T>
+struct __switch_decoder
+{
+    static T call(Decoder &Dc)
+    {
+        return __decoder<T>::decode(Dc);
+    }
+};
+
+template <typename Tuple>
+struct __switch_decoder<true, Tuple>
+{
+    static Tuple call(Decoder &Dc)
+    {
+        return __decoder_helper_tuple<0, std::tuple_size<Tuple>::value, Tuple>::call(Dc);
+    }
+};
+
+template <typename T>
+T DecodePacket(Decoder &Dc)
+{
+    return __switch_decoder<is_tuple<T>::value, T>::call(Dc);
+}
 
 template <typename T>
 struct __encoder;

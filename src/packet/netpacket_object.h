@@ -2,47 +2,6 @@
 #include <tuple>
 #include "serializer.h"
 
-template <int current, int total, typename... Args>
-struct decoder_helper
-{
-    template <typename... Argc>
-    static std::tuple<Args...> call(Decoder &Dc, Argc... args)
-    {
-        using nth_type = typename std::tuple_element<current, std::tuple<Args...>>::type;
-        return decoder_helper<current + 1, total, Args...>::call(Dc, args..., __decoder<nth_type>::decode(Dc));
-    }
-};
-
-template <int total, typename... Args>
-struct decoder_helper<total, total, Args...>
-{
-    static std::tuple<Args...> call(Decoder &Dc, Args... args)
-    {
-        return std::make_tuple(args...);
-    }
-};
-
-template <int current, int total, typename Tuple>
-struct decoder_helper_tuple
-{
-    template <typename... Argc>
-    static Tuple call(Decoder &Dc, Argc... args)
-    {
-        using nth_type = typename std::tuple_element<current, Tuple>::type;
-        return decoder_helper_tuple<current + 1, total, Tuple>::call(Dc, args..., __decoder<nth_type>::decode(Dc));
-    }
-};
-
-template <int total, typename Tuple>
-struct decoder_helper_tuple<total, total, Tuple>
-{
-    template <typename... Args>
-    static Tuple call(Decoder &Dc, Args... args)
-    {
-        return std::make_tuple(args...);
-    }
-};
-
 template <typename _Decoder>
 struct decode_obj
 {
@@ -55,17 +14,11 @@ public:
         Dc.AddString(std::move(str));
     };
 
-    template <typename Tuple>
-    Tuple as()
+    template <typename T>
+    T as()
     {
-        return decoder_helper_tuple<0, std::tuple_size<Tuple>::value, Tuple>::call(Dc);
+        return DecodePacket<T>(Dc);
     };
-
-    template <typename... Args>
-    std::tuple<Args...> as(std::tuple<Args...> &tp)
-    {
-        return decoder_helper<0, sizeof...(Args), Args...>::call(Dc);
-    }
 };
 
 template <typename _Decoder, typename _Encoder>

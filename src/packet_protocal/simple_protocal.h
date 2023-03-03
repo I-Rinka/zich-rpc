@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <bitset>
+#include <algorithm>
 #include "../packet/serializer.h"
 
 #ifndef __SIMPLE_PROTOCAL_H__
