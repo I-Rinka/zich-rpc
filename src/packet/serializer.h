@@ -263,4 +263,29 @@ std::string EncodeTuple(Encoder &Ec, std::tuple<Args...> &tp)
     return __encode_tuple_helper<0, sizeof...(Args), Args...>::call(Ec, tp);
 }
 
+//! \brief Switch between single type and tuple
+template <bool is_tuple, typename T>
+struct __switch_encoder
+{
+    static std::string call(Encoder &Ec, T &input)
+    {
+        __encoder<T>(Ec, input);
+        return Ec.GetResult();
+    }
+};
+
+template <typename Tuple>
+struct __switch_encoder<true, Tuple>
+{
+    static std::string call(Encoder &Ec, Tuple &input)
+    {
+        return EncodeTuple(Ec, input);
+    }
+};
+
+template <typename T>
+std::string EncodePacket(Decoder &Dc, T &input)
+{
+    return __switch_decoder<is_tuple<T>::value, T>::call(Dc, input);
+}
 #endif

@@ -1,7 +1,8 @@
-#include <string>
 #include <tuple>
+#include <string>
 #include "serializer.h"
-
+#ifndef __NETPACKET_OBJ_H__
+#define __NETPACKET_OBJ_H__
 template <typename _Decoder>
 struct decode_obj
 {
@@ -11,7 +12,7 @@ private:
 public:
     decode_obj(std::string &&str)
     {
-        Dc.AddString(std::move(str));
+        Dc.AddString(std::move(str));   
     };
 
     template <typename T>
@@ -21,7 +22,7 @@ public:
     };
 };
 
-template <typename _Decoder, typename _Encoder>
+template <typename _Encoder, typename _Decoder>
 class NetPacket
 {
 public:
@@ -50,3 +51,4 @@ public:
         return EncodeTuple(EC, tp);
     }
 };
+#endif

@@ -3,7 +3,7 @@ netpacket_object: test_netpacket_object.cpp
 	./test.out
 
 simple_stub: test_simple_stub.cpp
-	g++ $^ -o test.out -std=c++11
+	g++ $^ -o test.out -std=c++11 -lpthread
 	./test.out
 
 epoll_client: test_epoll_client.cpp
