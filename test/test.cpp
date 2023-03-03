@@ -1,112 +1,58 @@
 #include <tuple>
 #include <string>
 #include <type_traits>
+#include <iostream>
+#include "../src/util/print_tuple.h"
+using namespace std;
 
-struct Decoder
+template <typename>
+struct is_tuple : std::false_type
 {
-    bool DecodeNextBool() { return true; }
-    double DecodeNextDouble() { return 3.14; }
-    int DecodeNextInt() { return 42; }
-    std::string DecodeNextString() { return "hello"; }
 };
 
-template <typename F>
-struct function_traits;
-
-template <typename R, typename... Args>
-struct function_traits<R(Args...)>
+template <typename... T>
+struct is_tuple<std::tuple<T...>> : std::true_type
 {
-    static constexpr std::size_t arity = sizeof...(Args);
+};
 
-    template <std::size_t N>
-    struct nth_type
+template <bool use_tuple>
+struct tuple_helper
+{
+    static void call()
     {
-        static_assert(N < arity, "error: invalid index.");
-        using type = typename std::tuple_element<N, std::tuple<Args...>>::type;
-    };
+        cout << "Other" << endl;
+    }
+};
+
+template <>
+struct tuple_helper<true>
+{
+    static void call()
+    {
+        cout << "tuple" << endl;
+    }
 };
 
 template <typename T>
-struct __decoder;
-
-template <>
-struct __decoder<bool>
+void as()
 {
-    static bool decode(Decoder &Dc)
-    {
-        return Dc.DecodeNextBool();
-    }
+    tuple_helper<is_tuple<T>::value>::call();
 };
 
-template <>
-struct __decoder<double>
+class MyClass
 {
-    static double decode(Decoder &Dc)
-    {
-        return Dc.DecodeNextDouble();
-    }
-};
-
-template <>
-struct __decoder<int>
-{
-    static int decode(Decoder &Dc)
-    {
-        return Dc.DecodeNextInt();
-    }
-};
-
-template <>
-struct __decoder<long long>
-{
-    static int decode(Decoder &Dc)
-    {
-        return Dc.DecodeNextInt();
-    }
-};
-
-template <>
-struct __decoder<std::string>
-{
-    static std::string decode(Decoder &Dc)
-    {
-        return Dc.DecodeNextString();
-    }
-};
-
-template <size_t N>
-struct __decoder_helper
-{
-    template <typename F, typename... Args, typename... ArgT>
-    static auto call(Decoder &Dc, F func, Args... args) -> std::tuple<ArgT...>
-    {
-        using nth_type = typename function_traits<F>::template nth_type<N - 1>::type;
-        return __decoder_helper<N - 1>::template call<Dc, F, Args..., ArgT..., nth_type>(Dc, func, args..., __decoder<nth_type>::decode(Dc));
-    }
-};
-
-template <>
-struct __decoder_helper<0>
-{
-    template <typename F, typename... Args>
-    static auto call(Decoder &, F func, Args... args) -> std::tuple<Args...>
-    {
-        return std::make_tuple(args...);
-    }
-};
-
-struct ParameterDecoder
-{
-    template <typename F, typename... ArgT>
-    static auto call(Decoder &Dc, F function) -> std::tuple<ArgT...>
-    {
-        return __decoder_helper<function_traits<F>::arity>::template call<Dc, F>(Dc, function);
-    }
+private:
+    /* data */
+public:
 };
 
 int main()
 {
-    Decoder dc;
-    auto tup = ParameterDecoder::call<decltype(std::make_tuple<int, double, std::string>), int, double, std::string>(dc, std::make_tuple<int, double, std::string>);
+    auto tp = make_tuple(3.14, std::string("hello"));
+    auto pr = make_pair(std::string("1"), 2);
+
+    as<decltype(tp)>();
+    as<decltype(pr)>();
+
     return 0;
 }
