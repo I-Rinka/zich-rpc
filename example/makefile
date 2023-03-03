@@ -1,5 +1,5 @@
 server: server.cpp
-	g++ $^ -o server.out -std=c++11
+	g++ $^ -o server.out -std=c++17
 
 client: client.cpp
 	g++ $^ -o client.out -std=c++11
