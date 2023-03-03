@@ -210,6 +210,16 @@ struct __encoder<std::string>
     }
 };
 
+template <>
+struct __encoder<const char *>
+{
+    static void encode(Encoder &Ec, const char *str)
+    {
+        std::string tmp(str);
+        Ec.EncodeString(tmp);
+    }
+};
+
 template <size_t N>
 struct __encoder_helper
 {
@@ -265,14 +275,7 @@ std::string EncodeTuple(Encoder &Ec, std::tuple<Args...> &tp)
 
 //! \brief Switch between single type and tuple
 template <bool is_tuple, typename T>
-struct __switch_encoder
-{
-    static std::string call(Encoder &Ec, T &input)
-    {
-        __encoder<T>(Ec, input);
-        return Ec.GetResult();
-    }
-};
+struct __switch_encoder;
 
 template <typename Tuple>
 struct __switch_encoder<true, Tuple>
@@ -284,8 +287,18 @@ struct __switch_encoder<true, Tuple>
 };
 
 template <typename T>
-std::string EncodePacket(Decoder &Dc, T &input)
+struct __switch_encoder<false, T>
 {
-    return __switch_decoder<is_tuple<T>::value, T>::call(Dc, input);
+    static std::string call(Encoder &Ec, T &input)
+    {
+        auto tp = make_tuple(input);
+        return EncodeTuple(Ec, tp);
+    }
+};
+
+template <typename T>
+std::string EncodePacket(Encoder &Ec, T input)
+{
+    return __switch_encoder<is_tuple<T>::value, T>::call(Ec, input);
 }
 #endif

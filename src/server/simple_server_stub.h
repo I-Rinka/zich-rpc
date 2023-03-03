@@ -46,8 +46,8 @@ struct __func_return_helper
     static void call(F callable, SDecoder &decoder, TCPSocket &socket)
     {
         auto ans = __func_args_decode_helper<function_traits<F>::arity>::call(callable, decoder);
-        Encoder tmp;
-        std::string serialized_ans = EncodePacket(tmp, ans);
+        SEncoder encoder;
+        std::string serialized_ans = EncodePacket(encoder, ans);
         socket.send(serialized_ans);
     }
 };
