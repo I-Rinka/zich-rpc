@@ -1,19 +1,6 @@
 # ZiCh RPC.
 
-ZilCh RPC. A highly scalable concise RPC lib
-
-Serialization design: tuple -> pack.
-
-Format design:
-
-```txt
-    Pack: `size:`<usigned-int>`\n`Element
-    Element -> i64 | f64 | string | array | '\n' | Element
-    i64 -> `i64:`<long-long>
-    f64 -> `f64:`<double>
-    string -> `string:`<no-zero-c-str>
-    array -> `array:[`Element`\n]`
-```
+ZiCh RPC. A highly scalable concise RPC lib.
 
 ## Installation
 
@@ -74,6 +61,34 @@ This project is made up of:
 - Modern C++ threaded pool implementation
 - Epoll implementation for Linux
 - ...
+
+### Serialization protocol 
+
+This library supports theoretically supports XML, JSON, Msgpack, and any other kind of protocals that serialize basic type into network string.
+
+Currently it uses a self-defined protocal that has following format:
+
+Format design:
+
+```txt
+    Pack: `size:`<usigned-int>`\n`Element
+    Element -> i64 | f64 | string | array | '\n' | Element
+    i64 -> `i64:`<long-long>
+    f64 -> `f64:`<double>
+    string -> `string:`<no-zero-c-str>
+    array -> `array:[`Element`\n]` // deprecated
+```
+
+By supporting f64 and i64, it supports every basic format that modern computer may have. 
+
+By supporting string, it can send netflow directly or nested parse incoming packet string to support more complex type serialization.
+
+### Serialization design
+
+The serialization support composed type defined by `std::tuple` , or a single object. This library uses metaprogramming to recognise whether the user passes a composed tuple, or a single type.
+
+std::tuple / Single object -> std::string
+
 
 ## Todo
 
