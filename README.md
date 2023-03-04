@@ -49,3 +49,4 @@ cout << cs.call(RPCs::divide, 10, 3.14).as<double>() << endl; // call a function
 - [X] 增加server端错误处理
 - [ ] Linux 单独设置epoll编译选项
 - [X] Clear / Close 选项，当调用失败时
+- [ ] 可拓展性选项，允许用户自定义字符串解析为对象的函数
