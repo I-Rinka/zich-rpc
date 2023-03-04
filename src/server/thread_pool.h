@@ -44,10 +44,11 @@ private:
             statues.compare_exchange_strong(expected, ThreadPoolStatues::idle);
         }
 
-        // Get task
+        // Wait for tasks
         {
-            // Wait for tasks
             std::unique_lock<std::mutex> lock(_tasks_queue_mtx);
+
+            // Get task
             _tasks_cv.wait(lock, [this]
                            { return !_tasks_queue.empty() || statues == ThreadPoolStatues::stop; });
 
@@ -69,8 +70,14 @@ private:
             _tasks_queue.pop_back();
         }
 
-        // No need to catch error, as the packaged_task already wrapped the error handler
-        task();
+        try
+        {
+            task();
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Error when handling task: " << e.what() << std::endl;
+        }
 
         return thread_process();
     }
