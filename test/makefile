@@ -1,3 +1,7 @@
+object_decoder: test_object_decoder.cpp
+	g++ $^ -o test.out -std=c++11
+	./test.out
+
 threaded_stub: test_threaded_stub.cpp
 	g++ $^ -o test.out -std=c++11 -lpthread
 	./test.out

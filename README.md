@@ -15,6 +15,19 @@ Format design:
     array -> `array:[`Element`\n]`
 ```
 
+## Installation
+
+Currently, you should compile the source code directly into you project. Which means no installation, copy file to project directory will just work.
+
+```bash
+mv ./src <base-directory-that-uses-this-lib>/zichrpc
+```
+
+```c++
+#include "./zichrpc/zich_rpc.h"
+// ... your code
+```
+
 ## Example
 
 Server:
@@ -42,6 +55,18 @@ cout << cs.call(RPCs::divide, 10, 3.14).as<double>() << endl; // call a function
 
 ```
 
+## Details
+
+This project is made up of:
+
+- Full C++11 implementation. Therefore, it remade lots of wheel of the feature added by C++14 or C++17
+- No any extra dependencies
+- Wrapped socket implementation
+- Function traits metaprogramming implementation
+- Modern C++ threaded pool implementation
+- Epoll implementation for Linux
+- ...
+
 ## Todo
 
 - [X] 函数指针绑定支持
@@ -49,4 +74,4 @@ cout << cs.call(RPCs::divide, 10, 3.14).as<double>() << endl; // call a function
 - [X] 增加server端错误处理
 - [ ] Linux 单独设置epoll编译选项
 - [X] Clear / Close 选项，当调用失败时
-- [ ] 可拓展性选项，允许用户自定义字符串解析为对象的函数
+- [X] 可拓展性选项，允许用户自定义字符串解析为对象的函数
