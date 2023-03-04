@@ -37,7 +37,10 @@ private:
             _idle_threads_num++;
             if (_idle_threads_num == _threads_num)
             {
-                statues = ThreadPoolStatues::idle;
+                // It should be an atomatic operation. When status is stop, the value should not be set
+                // Only set when it is running
+                auto expected = ThreadPoolStatues::running;
+                statues.compare_exchange_strong(expected, ThreadPoolStatues::idle);
             }
 
             // Wait for tasks
@@ -52,22 +55,20 @@ private:
                 return;
             }
 
+            // If threadpool set status to stop here but one thread just pass the judgement
+            // let it go but make sure it never set status to other status other than stop.
+
             // thread is running
             _idle_threads_num--;
-            statues = ThreadPoolStatues::running;
+            auto expected = ThreadPoolStatues::idle;
+            statues.compare_exchange_strong(expected, ThreadPoolStatues::running);
 
             task = _tasks_queue.front();
             _tasks_queue.pop_back();
         }
 
-        try
-        {
-            task();
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << "Worker thread " << std::this_thread::get_id() << " get error: " << e.what() << std::endl;
-        }
+        // No need to catch error, as the packaged_task already wrapped the error handler
+        task();
 
         return thread_process();
     }
@@ -100,7 +101,7 @@ public:
         }
     };
 
-    int GetWorkingThreadsNum() const
+    int GetWorkingThreadsNum() const noexcept
     {
         return _threads_num - _idle_threads_num;
     }
