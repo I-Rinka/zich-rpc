@@ -67,17 +67,12 @@ private:
             statues.compare_exchange_strong(expected, ThreadPoolStatues::running);
 
             task = _tasks_queue.front();
-            _tasks_queue.pop_back();
+            _tasks_queue.pop_front();
         }
 
-        try
-        {
-            task();
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << "Error when handling task: " << e.what() << std::endl;
-        }
+        // No try catch is needed. The only issue is future itself is violated. Which means
+        // a task is executed twice
+        task();
 
         return thread_process();
     }
@@ -123,8 +118,12 @@ public:
         // Task is not assignable, so make it on the stack
         auto task = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(function), std::forward<Args>(args)...));
 
-        _tasks_queue.emplace_back([=]
-                                  { (*task)(); });
+        {
+            std::lock_guard<std::mutex> lock(_tasks_queue_mtx);
+            _tasks_queue.emplace_back([=]
+                                      { (*task)(); });
+        }
+
         _tasks_cv.notify_one();
 
         return task->get_future();
