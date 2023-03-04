@@ -116,17 +116,36 @@ private:
         }
     }
 
+    struct socket_functor
+    {
+        LengthPrefixedSocket _socket;
+        TServerStub *_ss_ptr;
+        socket_functor(LengthPrefixedSocket &&socket, TServerStub *_this) : _socket(std::move(socket)), _ss_ptr(_this) {}
+
+        void operator()()
+        {
+            _ss_ptr->ProcessSocket(_socket);
+            _socket.close();
+        }
+    };
+
     void ServerThread()
     {
         // C++ 11 does not have movable capture! So use shared_ptr instead
-        while (auto client_ptr = make_shared<LengthPrefixedSocket>(std::move(_ss->accept())))
+        // while (auto client_ptr = make_shared<LengthPrefixedSocket>(std::move(_ss->accept())))
+        // {
+        //     _thread_pool.AddTask(
+        //         [this, client_ptr]()
+        //         {
+        //             this->ProcessSocket(*client_ptr);
+        //             client_ptr->close();
+        //         });
+        // }
+
+        while (auto client = _ss->accept())
         {
-            _thread_pool.AddTask(
-                [this, client_ptr]()
-                {
-                    this->ProcessSocket(*client_ptr);
-                    client_ptr->close();
-                });
+            // Movable functor
+            _thread_pool.AddTask(socket_functor(std::move(client), this));
         }
     }
 

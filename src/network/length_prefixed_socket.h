@@ -46,6 +46,9 @@ public:
         _sockfd = other._sockfd;
         other._sockfd = -1;
 
+        IP = other.IP;
+        port = other.port;
+
         _buffer = other._buffer;
         _buffer_size = other._buffer_size;
         other._buffer_size = 0;
