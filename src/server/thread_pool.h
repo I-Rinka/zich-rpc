@@ -80,13 +80,14 @@ public:
         for (int i = 0; i < _threads_num; i++)
         {
             _thread_pool.push_back(
-                std::thread(thread_process));
+                std::thread([this]
+                            { thread_process(); }));
         }
     };
 
     ~ThreadPool()
     {
-        while (_idle_threads_num != _threads_num && !_tasks_queue.empty())
+        while (_idle_threads_num != _threads_num && !_tasks_queue.empty()) // All threads are idle and no more tasks
         {
         }
 
@@ -99,9 +100,31 @@ public:
         }
     };
 
-    template <typename F, typename... Args>
-    auto ProcessTask(F function, Args... args) -> typename std::future<typename function_traits<F>::return_type>
+    int GetWorkingThreadsNum() const
     {
-        
+        return _threads_num - _idle_threads_num;
+    }
+
+    template <typename F, typename... Args>
+    auto AddTask(F function, Args &&...args) -> typename std::future<typename function_traits<F>::return_type>
+    {
+        using return_type = typename function_traits<F>::return_type;
+
+        auto binded_function = std::bind(function, std::forward<Args>(args)...);
+        // Task is not assignable, so make it on the stack
+        auto task = std::make_shared<std::packaged_task<return_type()>>(binded_function);
+
+        _tasks_queue.emplace_back([=]
+                                  { (*task)(); });
+        _tasks_cv.notify_one();
+
+        return task->get_future();
+    }
+
+    template <typename F, typename... Args>
+    auto ProcessTask(F function, Args &&...args) -> typename function_traits<F>::return_type
+    {
+        auto future = AddTask(function, std::forward<Args>(args)...);
+        return future.get();
     }
 };

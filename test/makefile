@@ -1,5 +1,9 @@
+thread_pool: test_thread_pool.cpp
+	g++ $^ -o test.out -std=c++11 -lpthread
+	./test.out
+
 netpacket_object: test_netpacket_object.cpp
-	g++ $^ -o test.out -std=c++14
+	g++ $^ -o test.out -std=c++11
 	./test.out
 
 simple_stub: test_simple_stub.cpp
