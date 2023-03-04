@@ -55,6 +55,14 @@ cout << cs.call(RPCs::divide, 10, 3.14).as<double>() << endl; // call a function
 
 ```
 
+### RPC for any object
+
+Now Zich RPC only support serializing basic type. However, since it defines std::string as the serialized packet type, users can easily create self-defined object serializer by using std::string.
+
+Using self defined object is to specialize template `__encoder` and `__decoder`. Then following interface like NetPacket object works just fine.
+
+For more details see `example/object_serializer_example.cpp`
+
 ## Details
 
 This project is made up of:

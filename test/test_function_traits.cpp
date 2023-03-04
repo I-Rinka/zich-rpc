@@ -1,4 +1,4 @@
-#include "../src/packet/function_traits.h"
+#include "../src/util/function_traits.h"
 #include "TEST_SUIT.h"
 #include <iostream>
 #include <type_traits>

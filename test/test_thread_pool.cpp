@@ -45,10 +45,6 @@ int main(int argc, char const *argv[])
     //     std::cout << cls.str << endl;
     //     return cls.str.size();
     // };
-
-    auto f = std::bind(func, std::move(tmp));
-    f();
-
     auto rs2 = tp.AddTask([](Myclass cls) -> int
                           {
         std::cout << cls.str << endl;
