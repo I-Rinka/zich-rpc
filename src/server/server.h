@@ -1,3 +1,3 @@
-#include "./simple_server_stub.h"
+#include "./threaded_server_stub.h"
 
-using ServerStub = SServerStub;
+using ServerStub = TServerStub;

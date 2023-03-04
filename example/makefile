@@ -1,7 +1,7 @@
 all: server client
 
 server: server.cpp
-	g++ $^ -o server.out -std=c++11
+	g++ $^ -o server.out -std=c++11 -lpthread
 
 client: client.cpp
 	g++ $^ -o client.out -std=c++11

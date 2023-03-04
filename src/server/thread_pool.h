@@ -9,6 +9,9 @@
 #include <iostream>
 #include "../util/function_traits.h"
 
+#ifndef __ZICHRPC_THREAD_POOL__
+#define __ZICHRPC_THREAD_POOL__
+
 enum class ThreadPoolStatues
 {
     idle,
@@ -32,24 +35,23 @@ private:
     {
         std::function<void()> task;
 
+        _idle_threads_num++;
+        if (_idle_threads_num == _threads_num)
+        {
+            // It should be an atomatic operation. When status is stop, the value should not be set
+            // Only set when it is running
+            auto expected = ThreadPoolStatues::running;
+            statues.compare_exchange_strong(expected, ThreadPoolStatues::idle);
+        }
+
         // Get task
         {
-            _idle_threads_num++;
-            if (_idle_threads_num == _threads_num)
-            {
-                // It should be an atomatic operation. When status is stop, the value should not be set
-                // Only set when it is running
-                auto expected = ThreadPoolStatues::running;
-                statues.compare_exchange_strong(expected, ThreadPoolStatues::idle);
-            }
-
             // Wait for tasks
-
             std::unique_lock<std::mutex> lock(_tasks_queue_mtx);
             _tasks_cv.wait(lock, [this]
                            { return !_tasks_queue.empty() || statues == ThreadPoolStatues::stop; });
 
-            // Stop process
+            // Stop thread pool
             if (statues == ThreadPoolStatues::stop)
             {
                 return;
@@ -107,13 +109,12 @@ public:
     }
 
     template <typename F, typename... Args>
-    auto AddTask(F function, Args &&...args) -> typename std::future<typename function_traits<F>::return_type>
+    auto AddTask(F &&function, Args &&...args) -> typename std::future<typename function_traits<F>::return_type>
     {
         using return_type = typename function_traits<F>::return_type;
 
-        auto binded_function = std::bind(function, std::forward<Args>(args)...);
         // Task is not assignable, so make it on the stack
-        auto task = std::make_shared<std::packaged_task<return_type()>>(binded_function);
+        auto task = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(function), std::forward<Args>(args)...));
 
         _tasks_queue.emplace_back([=]
                                   { (*task)(); });
@@ -129,3 +130,4 @@ public:
         return future.get();
     }
 };
+#endif

@@ -45,7 +45,7 @@ cout << cs.call(RPCs::divide, 10, 3.14).as<double>() << endl; // call a function
 ## Todo
 
 - [X] 函数指针绑定支持
-- [ ] 线程池化
+- [X] 线程池化
 - [X] 增加server端错误处理
 - [ ] Linux 单独设置epoll编译选项
 - [X] Clear / Close 选项，当调用失败时

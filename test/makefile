@@ -1,3 +1,7 @@
+threaded_stub: test_threaded_stub.cpp
+	g++ $^ -o test.out -std=c++11 -lpthread
+	./test.out
+
 thread_pool: test_thread_pool.cpp
 	g++ $^ -o test.out -std=c++11 -lpthread
 	./test.out
