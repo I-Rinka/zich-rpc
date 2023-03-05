@@ -1,7 +1,7 @@
 #include <random>
 #include <vector>
 #include <stdint.h>
-#include "../src/packet/packet_parser.h"
+#include "../src/packet_protocal/simple_protocal.h"
 #include "TEST_SUIT.h"
 using namespace std;
 #define TEST_SCALE 10000
@@ -16,7 +16,7 @@ int main(int argc, char const *argv[])
     uniform_int_distribution<> strl(1, 10);
     uniform_int_distribution<> ll(INT32_MIN, INT32_MAX);
     uniform_int_distribution<> arity(1, ARG_SIZE);
-    normal_distribution<> db(10, 0.2);
+    normal_distribution<> db(10, 1);
 
     for (int r = 0; r < TEST_SCALE; r++)
     {

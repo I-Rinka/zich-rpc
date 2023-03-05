@@ -202,6 +202,33 @@ struct __encoder<long long>
 };
 
 template <>
+struct __encoder<short>
+{
+    static void encode(Encoder &Ec, short v)
+    {
+        Ec.EncodeInt(v);
+    }
+};
+
+template <>
+struct __encoder<unsigned short>
+{
+    static void encode(Encoder &Ec, unsigned short v)
+    {
+        Ec.EncodeInt(v);
+    }
+};
+
+template <>
+struct __encoder<unsigned int>
+{
+    static void encode(Encoder &Ec, unsigned int v)
+    {
+        Ec.EncodeInt(v);
+    }
+};
+
+template <>
 struct __encoder<std::string>
 {
     static void encode(Encoder &Ec, std::string &str)
@@ -244,6 +271,12 @@ template <typename... Args>
 std::string EncodeParameters(Encoder &Ec, Args... args)
 {
     return __encoder_helper<sizeof...(args)>::call(Ec, args...);
+}
+
+template <typename... Args>
+std::string EncodeParameters(Encoder &Ec, std::tuple<Args...> &tp)
+{
+    return EncodeTuple(Ec, tp);
 }
 
 template <int current, int total, typename... Args>
