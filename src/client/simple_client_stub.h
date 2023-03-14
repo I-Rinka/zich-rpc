@@ -34,6 +34,7 @@ private:
 
 public:
     SClientStub() : _cs(new ClientSocket<LengthPrefixedSocket>){};
+    SClientStub(std::string IP, uint16_t port) : _cs(new ClientSocket<LengthPrefixedSocket>), IP(IP), port(port){};
 
     SClientStub(const SClientStub &) = delete;
     SClientStub &operator=(const SClientStub &) = delete;
@@ -69,7 +70,7 @@ public:
         return _cs->connect(IP, port);
     }
 
-    bool connnect() noexcept
+    bool connect() noexcept
     {
         return _cs->connect(IP, port);
     }
