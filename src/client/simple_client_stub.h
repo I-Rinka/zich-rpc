@@ -29,12 +29,30 @@ class SClientStub
 {
 private:
     ClientSocket<LengthPrefixedSocket> *_cs;
+    std::string IP = "0.0.0.0";
+    uint16_t port = UINT16_MAX;
 
 public:
     SClientStub() : _cs(new ClientSocket<LengthPrefixedSocket>){};
 
     SClientStub(const SClientStub &) = delete;
     SClientStub &operator=(const SClientStub &) = delete;
+
+    SClientStub(SClientStub &&other)
+    {
+        this->IP = other.IP;
+        this->port = other.port;
+        this->_cs = other._cs;
+        other._cs = nullptr;
+    }
+
+    SClientStub &operator=(SClientStub &&other)
+    {
+        this->IP = other.IP;
+        this->port = other.port;
+        this->_cs = other._cs;
+        other._cs = nullptr;
+    }
 
     ~SClientStub()
     {
@@ -44,7 +62,14 @@ public:
         }
     }
 
-    bool connect(std::string IP, uint16_t port)
+    bool connect(std::string IP, uint16_t port) noexcept
+    {
+        this->IP = IP;
+        this->port = port;
+        return _cs->connect(IP, port);
+    }
+
+    bool connnect() noexcept
     {
         return _cs->connect(IP, port);
     }
