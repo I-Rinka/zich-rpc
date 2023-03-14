@@ -1,6 +1,8 @@
 #include <tuple>
 #include <iostream>
 
+#ifndef __Zichrpc_Print_Tuple_H__
+#define __Zichrpc_Print_Tuple_H__
 template <typename OStream, int current, int tuple_size, typename... Args>
 struct __print_t
 {
@@ -34,3 +36,4 @@ OStream &print_tuple(OStream &os, const std::tuple<Args...> &target)
 
 //     return 0;
 // }
+#endif

@@ -17,6 +17,8 @@ private:
 public:
     RETURN() = delete;
     RETURN(std::function<std::string()> f) : NetPacket<SEncoder, SDecoder>(), net_function(f){};
+    RETURN(RETURN &&other) = default;
+    RETURN& operator=(RETURN &&other) = default;
 
     template <typename T>
     T as()
@@ -53,6 +55,7 @@ public:
         this->port = other.port;
         this->_cs = other._cs;
         other._cs = nullptr;
+        return *this;
     }
 
     ~SClientStub()
