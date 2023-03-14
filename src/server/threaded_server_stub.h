@@ -78,6 +78,11 @@ private:
 
     void ProcessSocket(LengthPrefixedSocket &client_socket)
     {
+        if (this->_status == stub_status::stop)
+        {
+            return;
+        }
+
         try
         {
             std::string recv_str = client_socket.recv();
@@ -139,26 +144,23 @@ private:
 
     void ServerThread()
     {
-        // C++ 11 does not have movable capture! So use shared_ptr instead
-        // while (auto client_ptr = make_shared<LengthPrefixedSocket>(std::move(_ss->accept())))
-        // {
-        //     _thread_pool.AddTask(
-        //         [this, client_ptr]()
-        //         {
-        //             this->ProcessSocket(*client_ptr);
-        //             client_ptr->close();
-        //         });
-        // }
-
         while (auto client = _ss->accept())
         {
-            // Movable functor
-            _thread_pool.AddTask(socket_functor(std::move(client), this));
+            if (_status == stub_status::stop)
+            {
+                client.close();
+            }
+            else
+            {
+                // Movable functor
+                _thread_pool.AddTask(socket_functor(std::move(client), this));
+            }
         }
     }
+    uint16_t _port;
 
 public:
-    TServerStub(uint16_t port) : _ss(new ServerSocket<LengthPrefixedSocket>(port)), _thread_pool(THREADS_NUMBER){};
+    TServerStub(uint16_t port) : _ss(new ServerSocket<LengthPrefixedSocket>), _thread_pool(THREADS_NUMBER), _port(port){};
 
     ~TServerStub()
     {
@@ -180,6 +182,10 @@ public:
 
     void start()
     {
+        _status = stub_status::running;
+
+        _ss->bind(_port);
+        _ss->listen();
         ServerThread();
     }
 
