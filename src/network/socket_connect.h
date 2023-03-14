@@ -64,7 +64,7 @@ public:
 
     //! \brief Claim client socket without address
     //! \note If you call the default version, you need to call .connect() and .listen() after that
-    ClientSocket() : _socket(new CustomizedSocket()){};
+    ClientSocket() : _socket(nullptr){};
     ClientSocket(std::string ip, uint16_t port) : _socket(new CustomizedSocket()) { connect(ip, port); };
 
     //! \brief Create server socket from listen socket file descriptor
@@ -365,6 +365,12 @@ inline ServerSocket<CustomizedSocket>::~ServerSocket()
 template <typename CustomizedSocket>
 bool ClientSocket<CustomizedSocket>::connect(std::string ip, uint16_t port) noexcept
 {
+    if (_socket)
+    {
+        delete _socket;
+    }
+    _socket = new CustomizedSocket();
+
     _socket->IP = ip;
     _socket->port = port;
 

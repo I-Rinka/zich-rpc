@@ -164,6 +164,8 @@ public:
 
     ~TServerStub()
     {
+        _status = stub_status::stop;
+
         if (_ss)
         {
             delete _ss;
