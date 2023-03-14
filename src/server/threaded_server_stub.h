@@ -129,15 +129,30 @@ private:
 
         void operator()()
         {
+            {
+                std::lock_guard<std::mutex> lock(_ss_ptr->_socket_controller_mutex);
+                _ss_ptr->_socket_controller[(int)_socket] = &_socket;
+            }
+
             _ss_ptr->ProcessSocket(_socket);
-            _socket.close();
+
+            {
+                std::lock_guard<std::mutex> lock(_ss_ptr->_socket_controller_mutex);
+
+                if (_ss_ptr->_socket_controller.find((int)_socket) != _ss_ptr->_socket_controller.end())
+                {
+                    _ss_ptr->_socket_controller.erase((int)_socket);
+                    _socket.close();
+                }
+            }
         }
     };
 
     enum class stub_status
     {
         stop,
-        running
+        running,
+        terminate
     };
 
     volatile stub_status _status = stub_status::stop;
@@ -150,7 +165,11 @@ private:
             {
                 client.close();
             }
-            else
+            else if (_status == stub_status::terminate)
+            {
+                return;
+            }
+            else if (_status == stub_status::running)
             {
                 // Movable functor
                 _thread_pool.AddTask(socket_functor(std::move(client), this));
@@ -158,6 +177,9 @@ private:
         }
     }
     uint16_t _port;
+
+    std::mutex _socket_controller_mutex;
+    std::map<int, LengthPrefixedSocket *> _socket_controller;
 
 public:
     TServerStub(uint16_t port) : _ss(new ServerSocket<LengthPrefixedSocket>), _thread_pool(THREADS_NUMBER), _port(port){};
@@ -199,6 +221,22 @@ public:
     void reStart()
     {
         _status = stub_status::running;
+    }
+
+    // stop every using socket
+    void terminate()
+    {
+        _status = stub_status::terminate;
+
+        {
+            std::lock_guard<std::mutex> lock(_socket_controller_mutex);
+
+            for (auto &i : _socket_controller)
+            {
+                i.second->close();
+            }
+            _socket_controller.clear();
+        }
     }
 };
 #endif
