@@ -129,6 +129,14 @@ private:
         }
     };
 
+    enum class stub_status
+    {
+        stop,
+        running
+    };
+
+    volatile stub_status _status = stub_status::stop;
+
     void ServerThread()
     {
         // C++ 11 does not have movable capture! So use shared_ptr instead
@@ -173,6 +181,16 @@ public:
     void start()
     {
         ServerThread();
+    }
+
+    void stop()
+    {
+        _status = stub_status::stop;
+    }
+
+    void reStart()
+    {
+        _status = stub_status::running;
     }
 };
 #endif
